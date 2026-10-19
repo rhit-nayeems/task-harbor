@@ -27,7 +27,8 @@ def build_parser() -> argparse.ArgumentParser:
         description="Multi-provider backlog orchestrator with isolated planning, implementation, QA, escalation, and code review.",
     )
     p.add_argument("--repo", type=_repo, default=Path.cwd(), help="Target Git repository (default: current directory)")
-    sub = p.add_subparsers(dest="command", required=True)
+    sub = p.add_subparsers(dest="command")
+    p.set_defaults(command="tui", run_id=None)
     tui = sub.add_parser("tui", help="Open the live terminal dashboard (install the ui extra)")
     tui.add_argument("--run-id", help="Select a saved run")
 

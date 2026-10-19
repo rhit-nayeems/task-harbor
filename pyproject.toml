@@ -25,7 +25,7 @@ opus-manager = "opus_manager.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["opus_manager*"]
+include = ["opus_manager*", "task_harbor*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

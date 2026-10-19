@@ -20,7 +20,7 @@ python -m pip install .
 task-harbor --help
 ```
 
-If `task-harbor` is not on your PATH, use `python -m opus_manager` in its place.
+If `task-harbor` is not on your PATH, use `python -m task_harbor` in its place.
 The old `opus-harbor` and `opus-manager` commands still work.
 
 ## Terminal dashboard
@@ -33,6 +33,9 @@ Install the optional interface from the Task Harbor checkout:
 python -m pip install ".[ui]"
 task-harbor --repo "path/to/your-app" tui
 ```
+
+Running `task-harbor` (or `python -m task_harbor`) without a command opens the
+dashboard for the current directory. `--help` lists the other commands.
 
 The dashboard shows saved runs, task status, dependencies, recent events, agent
 calls, and reported costs. Select a run with the picker and use the arrow keys

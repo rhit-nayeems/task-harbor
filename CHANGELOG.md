@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Open the dashboard when no command is given; add `python -m task_harbor`.
+
 - Add an optional terminal dashboard: run picker, task details, recent events,
   usage totals, keyboard navigation, and automatic refresh without model calls.
 - Add dashboard interaction tests to the Windows and Linux CI jobs.
