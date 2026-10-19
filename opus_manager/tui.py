@@ -7,11 +7,30 @@ from pathlib import Path
 
 from rich.text import Text
 from textual.app import App, ComposeResult
+from textual.screen import ModalScreen
 from textual.containers import Horizontal, VerticalScroll
-from textual.widgets import DataTable, Footer, Select, Static
+from textual.widgets import Button, DataTable, Footer, Select, Static, ProgressBar
 
 from .config import Config
 from .reporting import run_report
+from .help import GUIDE
+
+
+class HelpScreen(ModalScreen):
+    BINDINGS = [("escape", "dismiss", "Close help"), ("f1", "dismiss", "Close help")]
+    DEFAULT_CSS = """
+    HelpScreen { align: center middle; background: #000000 70%; }
+    #help-panel { width: 85%; height: 90%; border: round #66e3c4; padding: 1 2; background: #111e2c; }
+    #help-text { height: auto; }
+    """
+
+    def compose(self) -> ComposeResult:
+        with VerticalScroll(id="help-panel"):
+            yield Button("Close help (Esc)", id="close-help", variant="primary")
+            yield Static(GUIDE, id="help-text", markup=False)
+
+    def on_button_pressed(self) -> None:
+        self.dismiss()
 
 
 def runs_directory(repo: Path) -> Path:
@@ -44,11 +63,14 @@ def event_tail(path: Path) -> str:
 
 class HarborApp(App):
     TITLE = "Task Harbor"
-    BINDINGS = [("q", "quit", "Quit"), ("r", "reload", "Refresh"), ("tab", "focus_next", "Next pane")]
+    BINDINGS = [("f1", "help", "Help"), ("q", "quit", "Quit"), ("r", "reload", "Refresh"), ("tab", "focus_next", "Next pane")]
     CSS = """
     Screen { background: #0b111b; color: #d9e4ef; }
     #brand { height: 5; padding: 1 2; background: #111e2c; color: #66e3c4; text-style: bold; }
     #workspace { height: 1; margin: 0 2; color: #8295aa; }
+    #welcome { height: auto; padding: 1 2; margin: 1 2; border: round #66e3c4; background: #111e2c; }
+    #completion { height: 1; margin: 0 2; }
+    #run-picker { background: #111e2c; }
     #run-picker { margin: 1 2 0 2; }
     #summary { height: 5; margin: 0 2; }
     .metric { width: 1fr; border: round #294158; padding: 0 1; margin-right: 1; }
@@ -79,10 +101,12 @@ class HarborApp(App):
     def compose(self) -> ComposeResult:
         yield Static("▰ ▰ ▰  TASK HARBOR\n       Plan → Build → Verify → Review", id="brand")
         yield Static(str(self.repo), id="workspace", markup=False)
+        yield Static("No runs yet.\n\n1  task-harbor init\n2  Edit BACKLOG.md and .manager/config.json\n3  task-harbor validate\n4  task-harbor manage (in another terminal)\n\nPress F1 for setup help. This dashboard will show the run when it starts.", id="welcome", markup=False)
         yield Select([], prompt="Choose a run", id="run-picker")
         with Horizontal(id="summary"):
             for name in ("progress", "provider", "calls", "cost"):
                 yield Static("—", id=name, classes="metric", markup=False)
+        yield ProgressBar(total=1, show_eta=False, id="completion")
         with Horizontal(id="body"):
             yield DataTable(id="tasks", cursor_type="row")
             with VerticalScroll(id="details-pane"):
@@ -101,6 +125,9 @@ class HarborApp(App):
         self.set_interval(2, self.action_reload)
         table.focus()
 
+    def action_help(self) -> None:
+        self.push_screen(HelpScreen())
+
     def on_resize(self) -> None:
         self.screen.set_class(self.size.width < 95, "compact")
 
@@ -110,6 +137,8 @@ class HarborApp(App):
             self.action_reload()
 
     def action_reload(self) -> None:
+        if isinstance(self.screen, HelpScreen):
+            return
         try:
             names = sorted((p.parent.name for p in self.runs.glob("*/state.json")), reverse=True)
             if names != self.run_names:
@@ -121,8 +150,14 @@ class HarborApp(App):
                 if self.selected_run in names:
                     picker.value = self.selected_run
             if not self.selected_run:
+                self.query_one("#welcome").display = True
+                for selector in ("#body", "#events", "#summary", "#completion"):
+                    self.query_one(selector).display = False
                 self.clear_run("No runs yet.\nStart with: task-harbor --repo <path> init\nEdit BACKLOG.md, then run manage in another terminal.")
                 return
+            self.query_one("#welcome").display = False
+            for selector in ("#body", "#events", "#summary", "#completion"):
+                self.query_one(selector).display = True
             run_dir = self.runs / self.selected_run
             report = run_report(run_dir)
             events = event_tail(run_dir / "events.jsonl")
@@ -136,6 +171,7 @@ class HarborApp(App):
             row = table.cursor_row
             selected = self.report["tasks"][row]["id"] if self.report and row < len(self.report["tasks"]) else None
             self.report = report
+            self.query_one(ProgressBar).update(total=max(1, report["total"]), progress=report["completed"])
             usage = report["usage"]
             for name, value in {
                 "progress": f'TASKS\n{report["completed"]} / {report["total"]} complete',
@@ -157,6 +193,7 @@ class HarborApp(App):
 
     def clear_run(self, message: str) -> None:
         self.report = None
+        self.query_one(ProgressBar).update(total=1, progress=0)
         self.query_one(DataTable).clear()
         for name in ("progress", "provider", "calls", "cost"):
             self.query_one(f"#{name}", Static).update("—")

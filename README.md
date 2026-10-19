@@ -13,25 +13,61 @@ You need Python 3.11+, Git, and either Claude Code or Codex installed and signed
 The repository you want to work on must have at least one commit and a configured
 Git author.
 
+Install the Python package directly from this repository (no clone required):
+
 ```sh
-git clone https://github.com/rhit-nayeems/task-harbor.git
-cd task-harbor
-python -m pip install .
-task-harbor --help
+python -m pip install "git+https://github.com/rhit-nayeems/task-harbor.git"
+task-harbor --version
+task-harbor guide
 ```
 
-If `task-harbor` is not on your PATH, use `python -m task_harbor` in its place.
-The old `opus-harbor` and `opus-manager` commands still work.
+The dashboard is included. This project is not published to PyPI yet; do not use
+`pip install task-harbor` expecting this repository's package.
+
+<details>
+<summary>Isolated install, upgrades, and command-not-found fixes</summary>
+
+With pipx installed, use an isolated application environment:
+
+```sh
+pipx install "git+https://github.com/rhit-nayeems/task-harbor.git"
+pipx ensurepath
+```
+
+Restart your terminal after changing PATH. For a regular pip installation,
+`python -m task_harbor` works with the same arguments if the executable is not
+on PATH. Use the same Python interpreter you installed with.
+
+Upgrade a pip installation:
+
+```sh
+python -m pip install --upgrade "git+https://github.com/rhit-nayeems/task-harbor.git"
+```
+
+For pipx, use `pipx upgrade task-harbor`. Uninstall with `python -m pip uninstall
+task-harbor` or `pipx uninstall task-harbor`, respectively.
+
+</details>
+
+[First run](#start-a-run) · [Commands](#cli-commands) · [Configuration](docs/CONFIGURATION.md)
 
 ## Terminal dashboard
 
-![Terminal dashboard showing example run data](docs/terminal-dashboard.svg)
+![Task dashboard with sample data](docs/terminal-dashboard.svg)
 
-Install the optional interface from the Task Harbor checkout:
+<details>
+<summary>See first-run setup and built-in help</summary>
+
+![First-run screen](docs/terminal-welcome.svg)
+![Built-in help screen](docs/terminal-help.svg)
+
+</details>
+
+These are captures of the actual terminal interface. The task dashboard uses
+sample run data. Open it inside your project:
 
 ```sh
-python -m pip install ".[ui]"
-task-harbor --repo "path/to/your-app" tui
+task-harbor
 ```
 
 Running `task-harbor` (or `python -m task_harbor`) without a command opens the
@@ -39,7 +75,7 @@ dashboard for the current directory. `--help` lists the other commands.
 
 The dashboard shows saved runs, task status, dependencies, recent events, agent
 calls, and reported costs. Select a run with the picker and use the arrow keys
-to inspect tasks. Tab changes panes, `r` refreshes, and `q` exits. It also
+to inspect tasks. Tab changes panes, F1 opens help, `r` refreshes, and `q` exits. It also
 refreshes automatically every two seconds.
 
 Use `tui --run-id <id>` to open a specific run. Start or resume work in another
@@ -133,6 +169,9 @@ ID printed by `manage`.
 
 | Command | What it does |
 | --- | --- |
+| `guide` | Setup, usage, and troubleshooting help |
+| `tui` (or no command) | Open the dashboard |
+| `--version` | Show installed version |
 | `init` | Create the configuration and sample backlog |
 | `validate` | Check backlog format and dependencies without calling a model |
 | `doctor` | Validate the backlog and make a test call to the selected agent |
@@ -175,8 +214,8 @@ python -m pytest
 ```
 
 Tests use simulated agent responses and real temporary Git repositories. CI runs
-on Windows and Linux with Python 3.11 and 3.14. Live model behavior is tested
-separately.
+on Windows and Linux with Python 3.11 and 3.14. These tests do not establish live model quality or account compatibility; see
+[EVALUATION.md](EVALUATION.md) for opt-in live evaluations.
 
 - [Configuration and provider details](docs/CONFIGURATION.md)
 - [Architecture](ARCHITECTURE.md)

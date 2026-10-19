@@ -3,6 +3,13 @@ import builtins
 from opus_manager.cli import main
 
 
+def test_guide_does_not_create_project_files(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    assert main(["guide"]) == 0
+    assert "TROUBLESHOOTING" in capsys.readouterr().out
+    assert not list(tmp_path.iterdir())
+
+
 def test_default_command_opens_dashboard(tmp_path, monkeypatch):
     import sys
     from types import SimpleNamespace

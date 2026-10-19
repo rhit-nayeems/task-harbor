@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased
+## 0.5.0 — Terminal dashboard
+
+- Include the dashboard in standard installs; add setup guide, F1 help, progress,
+  first-run instructions, and reproducible terminal screenshots.
 
 - Open the dashboard when no command is given; add `python -m task_harbor`.
 

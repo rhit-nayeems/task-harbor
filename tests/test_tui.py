@@ -41,6 +41,11 @@ def test_navigation_refresh_switch_and_error_recovery(tmp_path):
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
             assert app.query_one(DataTable).row_count == 2
+            await pilot.press("f1")
+            await pilot.pause()
+            app.action_reload()
+            assert "GETTING STARTED" in str(app.screen.query_one("#help-text", Static).render())
+            await pilot.press("escape")
             assert "unknown" in str(app.query_one("#cost", Static).render())
             await pilot.press("down")
             assert "UI-2" in str(app.query_one("#details", Static).render())

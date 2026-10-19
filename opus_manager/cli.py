@@ -24,12 +24,27 @@ def _repo(value: str) -> Path:
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="task-harbor",
-        description="Multi-provider backlog orchestrator with isolated planning, implementation, QA, escalation, and code review.",
+        description="Run a coding backlog with Claude or GPT. With no command, open the dashboard.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""Quick start (inside your Git repository):
+  task-harbor init           Create config and sample backlog
+  # Edit BACKLOG.md and .manager/config.json
+  task-harbor validate       Check tasks without model calls
+  task-harbor doctor         Check agent connectivity (uses a model call)
+  task-harbor manage         Start work (uses model calls)
+  task-harbor                Monitor from another terminal
+
+Help: task-harbor guide | task-harbor COMMAND --help
+Dashboard keys: F1 help, Tab next pane, arrows select, r refresh, q quit.
+Python fallback: python -m task_harbor
+""",
     )
+    p.add_argument("--version", action="version", version="%(prog)s 0.5.0")
     p.add_argument("--repo", type=_repo, default=Path.cwd(), help="Target Git repository (default: current directory)")
     sub = p.add_subparsers(dest="command")
     p.set_defaults(command="tui", run_id=None)
-    tui = sub.add_parser("tui", help="Open the live terminal dashboard (install the ui extra)")
+    sub.add_parser("guide", help="Show setup, usage, and troubleshooting instructions")
+    tui = sub.add_parser("tui", help="Open the live terminal dashboard")
     tui.add_argument("--run-id", help="Select a saved run")
 
     sub.add_parser("init", help="Create .manager/config.json and a BACKLOG.md template if absent")
@@ -72,7 +87,7 @@ def cmd_init(repo: Path) -> int:
     else:
         print(f"Kept existing {backlog}")
     print(f"Config: {repo / cfg.manager_dir / 'config.json'}")
-    print("Next: edit BACKLOG.md, then run `opus-manager --repo <repo> doctor`.")
+    print("Next: edit BACKLOG.md, then run `task-harbor validate`, then `task-harbor doctor`.")
     return 0
 
 
@@ -154,6 +169,10 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     repo = args.repo.resolve()
     try:
+        if args.command == "guide":
+            from .help import GUIDE
+            print(GUIDE)
+            return 0
         if args.command == "init":
             return cmd_init(repo)
         if getattr(args, "run_id", None) is not None and (not args.run_id or any(c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" for c in args.run_id)):
