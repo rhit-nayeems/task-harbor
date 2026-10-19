@@ -12,6 +12,7 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+ui = ["textual>=1,<2"]
 
 [project.urls]
 Repository = "https://github.com/rhit-nayeems/task-harbor"

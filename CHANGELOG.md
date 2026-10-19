@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Add an optional terminal dashboard: run picker, task details, recent events,
+  usage totals, keyboard navigation, and automatic refresh without model calls.
+- Add dashboard interaction tests to the Windows and Linux CI jobs.
+
 ## 0.4.0 — Task Harbor
 
 - Add GPT through Codex CLI, including JSONL usage and exact thread resumption.

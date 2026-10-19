@@ -23,6 +23,26 @@ task-harbor --help
 If `task-harbor` is not on your PATH, use `python -m opus_manager` in its place.
 The old `opus-harbor` and `opus-manager` commands still work.
 
+## Terminal dashboard
+
+![Terminal dashboard showing example run data](docs/terminal-dashboard.svg)
+
+Install the optional interface from the Task Harbor checkout:
+
+```sh
+python -m pip install ".[ui]"
+task-harbor --repo "path/to/your-app" tui
+```
+
+The dashboard shows saved runs, task status, dependencies, recent events, agent
+calls, and reported costs. Select a run with the picker and use the arrow keys
+to inspect tasks. Tab changes panes, `r` refreshes, and `q` exits. It also
+refreshes automatically every two seconds.
+
+Use `tui --run-id <id>` to open a specific run. Start or resume work in another
+terminal with the commands below. The dashboard only reads local files; it
+doesn't run agents or consume tokens. Unreported costs are shown as unknown.
+
 ## Start a run
 
 Replace `path/to/your-app` with the repository you want Task Harbor to work on.

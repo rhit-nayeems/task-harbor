@@ -28,6 +28,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("--repo", type=_repo, default=Path.cwd(), help="Target Git repository (default: current directory)")
     sub = p.add_subparsers(dest="command", required=True)
+    tui = sub.add_parser("tui", help="Open the live terminal dashboard (install the ui extra)")
+    tui.add_argument("--run-id", help="Select a saved run")
 
     sub.add_parser("init", help="Create .manager/config.json and a BACKLOG.md template if absent")
     sub.add_parser("doctor", help="Validate Git, backlog, configuration, and agent CLI connectivity")
@@ -153,8 +155,18 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "init":
             return cmd_init(repo)
-        if hasattr(args, "run_id") and (not args.run_id or any(c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" for c in args.run_id)):
+        if getattr(args, "run_id", None) is not None and (not args.run_id or any(c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" for c in args.run_id)):
             raise ValueError("Invalid run ID")
+        if args.command == "tui":
+            try:
+                import textual  # Check the optional extra before importing its dependencies.
+                from .tui import HarborApp
+            except ModuleNotFoundError as exc:
+                if exc.name != "textual":
+                    raise
+                raise ManagerError('Install the dashboard first: python -m pip install ".[ui]" (from the Task Harbor checkout)') from exc
+            HarborApp(repo, args.run_id).run()
+            return 0
         cfg = load_config(repo)
         if args.command in {"report", "stop", "retry"}:
             run_dir = repo / cfg.manager_dir / "runs" / args.run_id
