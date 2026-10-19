@@ -36,6 +36,13 @@ class Config:
     verification_timeout_seconds: int = 300
     evidence_max_chars: int = 12000
     verification_commands: list[str] = field(default_factory=list)
+    setup_commands: list[str] = field(default_factory=list)
+    required_executables: list[str] = field(default_factory=list)
+    required_env: list[str] = field(default_factory=list)
+    verification_artifacts: list[str] = field(default_factory=list)
+    require_verification: bool = False
+    workflow: str = "standard"
+    repeated_failure_limit: int = 4
     protected_paths: list[str] = field(default_factory=lambda: [
         ".git", ".manager", ".env", ".env.*", "**/.env", "**/.env.*",
         "*.pem", "*.key", "**/*.pem", "**/*.key", "secrets.*", "**/secrets.*"
@@ -48,6 +55,12 @@ class Config:
     task_branch_prefix: str = "manager/task"
 
     def __post_init__(self) -> None:
+        if self.workflow not in {"standard", "adaptive"}:
+            raise ValueError("workflow must be standard or adaptive")
+        if type(self.require_verification) is not bool:
+            raise ValueError("require_verification must be a boolean")
+        if type(self.repeated_failure_limit) is not int or self.repeated_failure_limit < 2:
+            raise ValueError("repeated_failure_limit must be at least 2")
         if self.provider not in {"claude", "codex"}:
             raise ValueError("provider must be claude or codex")
         if not isinstance(self.model, str) or not self.model.strip():
@@ -77,10 +90,14 @@ class Config:
             value = getattr(self, name)
             if value is not None and (type(value) not in {int, float} or not math.isfinite(value) or value <= 0):
                 raise ValueError(f"{name} must be a positive finite number")
-        for name in ("verification_commands", "protected_paths"):
+        for name in ("verification_commands", "setup_commands", "required_executables", "required_env", "verification_artifacts", "protected_paths"):
             value = getattr(self, name)
             if not isinstance(value, list) or any(not isinstance(x, str) or not x.strip() for x in value):
                 raise ValueError(f"{name} must be a list of nonempty strings")
+        for value in self.verification_artifacts:
+            path = Path(value)
+            if path.is_absolute() or ".." in path.parts:
+                raise ValueError("verification_artifacts must be paths inside the verification worktree")
         for name in ("manager_dir", "backlog_file"):
             value = Path(getattr(self, name))
             if value.is_absolute() or ".." in value.parts or str(value) == ".":

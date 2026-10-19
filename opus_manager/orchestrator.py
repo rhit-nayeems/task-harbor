@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import re
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -55,6 +57,9 @@ from .prompts import (
 from .state import append_event, load_state, save_state
 from .usage import RunStopped, UsageLedger
 from .verification import run_checks
+from .preflight import baseline, execute_checks, verification_mutations, collect_artifacts
+from .contracts import load_contracts, validate_contract, unanswered, fast_path
+from .evidence import change_evidence, review_chunks, failure_signature
 
 
 class ManagerError(RuntimeError):
@@ -149,6 +154,12 @@ class Orchestrator:
             t.checkpoint_commit = None
             t.last_qa_path = None
             t.metadata = {}
+
+        contracts = load_contracts(repo, config.manager_dir)
+        for task_id, contract in contracts.items():
+            if task_id not in tasks:
+                raise ManagerError(f"Contract refers to unknown task: {task_id}")
+            tasks[task_id].metadata["contract"] = validate_contract(contract, len(tasks[task_id].acceptance_criteria))
 
         now = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         run_id = f"{now}_{head(repo)[:8]}"
@@ -351,6 +362,20 @@ class Orchestrator:
 
     def _run_locked(self) -> None:
         assert self.state is not None
+        baseline_path = self.paths.run_dir / "baseline.json"
+        evidence = json.loads(baseline_path.read_text(encoding="utf-8")) if baseline_path.exists() else {}
+        # Environment fixes and changed recipes must be rechecked on resume.
+        recipe = {"setup": self.config.setup_commands, "checks": self.config.verification_commands,
+                  "env": self.config.required_env, "executables": self.config.required_executables,
+                  "artifacts": self.config.verification_artifacts, "timeout": self.config.verification_timeout_seconds}
+        if evidence.get("recipe") != recipe or evidence.get("status") in {"ENVIRONMENT_BLOCKED", "FAIL"}:
+            evidence = baseline(self.repo, self.config, self.state.base_commit, self.agent_env)
+        evidence["recipe"] = recipe
+        self._write_artifact(baseline_path, json.dumps(evidence, indent=2))
+        if evidence["status"] == "ENVIRONMENT_BLOCKED":
+            raise RunStopped("Preflight environment blocked; inspect baseline.json and fix the environment recipe")
+        if self.config.require_verification and evidence["status"] != "PASS":
+            raise RunStopped("Preflight requires passing baseline checks; inspect baseline.json")
         cycles = 0
         while not self.state.paused:
             if (self.paths.run_dir / "stop-request.json").exists():
@@ -414,6 +439,11 @@ class Orchestrator:
                 t.blocked_reason = None
                 t.metadata.pop("blocked_kind", None)
                 continue
+            questions = unanswered(t.metadata.get("contract", {}))
+            if questions:
+                t.blocked_reason = "Clarification required: " + ", ".join(questions)
+                t.metadata["blocked_kind"] = "clarification"
+                continue
             missing = [d for d in t.dependencies if d not in complete]
             if missing:
                 t.blocked_reason = "Waiting for dependencies: " + ", ".join(missing)
@@ -421,7 +451,7 @@ class Orchestrator:
             elif not t.acceptance_criteria:
                 t.blocked_reason = "Acceptance criteria are required before planning"
                 t.metadata["blocked_kind"] = "acceptance"
-            elif t.metadata.get("blocked_kind") in {"dependency", "acceptance"}:
+            elif t.metadata.get("blocked_kind") in {"dependency", "acceptance", "clarification"}:
                 t.blocked_reason = None
                 t.metadata.pop("blocked_kind", None)
         self._persist()
@@ -453,6 +483,18 @@ class Orchestrator:
         candidates = [t for t in candidates if t.status == TaskStatus.UNPLANNED]
         if not candidates:
             return False
+        for t in candidates:
+            if fast_path(t, self.config):
+                plan = "Implement the operator-approved task agreement. Preserve scope and run all acceptance checks.\n" + json.dumps(t.metadata["contract"], indent=2)
+                path = self.paths.plans_dir / f"{t.task_id}.md"
+                self._write_artifact(path, plan)
+                t.plan_path = str(path.relative_to(self.repo))
+                t.plan_base_commit = head(Path(self.state.integration_worktree))
+                t.status = TaskStatus.READY
+                t.metadata["workflow"] = "adaptive_low"
+                self._event("ADAPTIVE_PLAN", task_id=t.task_id)
+                self._sync_backlog()
+                return True
         completed = [tid for tid, t in self.state.tasks.items() if t.status == TaskStatus.COMPLETE]
         decision = {"task_ids": [t.task_id for t in candidates[:slots]], "reason": "priority and dependency order"}
         if self.config.scheduler == "model":
@@ -553,6 +595,21 @@ class Orchestrator:
             verdict = str(review.get("verdict", "REWORK")).upper()
             review_path = self.paths.plans_dir / f"{t.task_id}.review.{t.plan_reworks}.json"
             self._write_artifact(review_path, json.dumps(review, indent=2))
+            if verdict == "NEEDS_CLARIFICATION":
+                questions = review.get("questions", [])
+                if not isinstance(questions, list) or not questions or any(not isinstance(q, str) or not q.strip() for q in questions):
+                    raise ManagerError("Clarification response must contain nonempty questions")
+                contract = t.metadata.setdefault("contract", {})
+                stored = contract.setdefault("questions", {})
+                for question in questions:
+                    index = 1
+                    while f"Q-{index}" in stored:
+                        index += 1
+                    stored[f"Q-{index}"] = question
+                t.blocked_reason = "Plan needs clarification; use questions and answer commands"
+                t.metadata["blocked_kind"] = "clarification"
+                self._event("CLARIFICATION_REQUESTED", task_id=t.task_id, questions=stored)
+                return
             if verdict == "APPROVED":
                 t.status = TaskStatus.READY
                 t.owner = None
@@ -638,6 +695,12 @@ class Orchestrator:
         assert self.state is not None
         plan = self._task_plan(t)
         worktree = self._prepare_task_worktree(t)
+        t.metadata.setdefault("implementation_base", head(worktree))
+        reproduction = t.metadata.get("contract", {}).get("reproduction_commands", [])
+        if reproduction and "reproduction_before" not in t.metadata:
+            t.metadata["reproduction_before"] = baseline(self.repo, replace(self.config, verification_commands=reproduction),
+                                                       t.metadata["implementation_base"], self.agent_env)
+            self._persist()
         resume_mode = str(t.metadata.get("resume_mode", "implementation"))
         checkpoint_commit = t.checkpoint_commit
 
@@ -717,6 +780,16 @@ class Orchestrator:
 
             t.status = TaskStatus.QA_FAIL
             t.qa_failures += 1
+            tree = git(worktree, "rev-parse", f"{checkpoint_commit}^{{tree}}").stdout
+            signature = failure_signature(qa_result) + tree
+            prior = t.metadata.get("failure_signature")
+            t.metadata["identical_failures"] = t.metadata.get("identical_failures", 0) + 1 if prior == signature else 1
+            t.metadata["failure_signature"] = signature
+            if t.metadata["identical_failures"] >= self.config.repeated_failure_limit:
+                t.blocked_reason = "Repeated failure with no code changes; inspect evidence before retrying"
+                t.metadata["blocked_kind"] = "no_progress"
+                self._sync_backlog()
+                raise RunStopped(f"{t.task_id}: {t.blocked_reason}")
             evidence = json.dumps(qa_result, indent=2)
             self._event("QA_FAILED", task_id=t.task_id, verdict=verdict, failures=t.qa_failures)
             if t.qa_failures <= self.config.max_fix_attempts_before_restart:
@@ -788,14 +861,32 @@ class Orchestrator:
             t.checkpoint_commit = commit
             self._sync_backlog()
             self._event("QA_STARTED", task_id=t.task_id, commit=commit)
-            checks = run_checks(self.config.verification_commands, qa_path,
-                                timeout=self.config.verification_timeout_seconds,
-                                limit=self.config.evidence_max_chars, env=self.agent_env)
+            verification = execute_checks(self.config, qa_path, self.agent_env)
+            checks = list(verification["checks"])
+            contract = t.metadata.get("contract", {})
+            mapped = {}
+            reproduction_after = []
+            if verification["status"] not in {"FAIL", "ENVIRONMENT_BLOCKED"}:
+                for criterion, commands in contract.get("acceptance_checks", {}).items():
+                    mapped[criterion] = run_checks(commands, qa_path, timeout=self.config.verification_timeout_seconds,
+                                                  limit=self.config.evidence_max_chars, env=self.agent_env)
+                    checks.extend(mapped[criterion])
+                if contract.get("reproduction_commands"):
+                    reproduction_after = run_checks(contract["reproduction_commands"], qa_path,
+                                                     timeout=self.config.verification_timeout_seconds,
+                                                     limit=self.config.evidence_max_chars, env=self.agent_env)
+                    checks.extend(reproduction_after)
             failed = any(c["exit_code"] != 0 or c["timed_out"] for c in checks)
+            if verification["status"] == "ENVIRONMENT_BLOCKED":
+                self._write_artifact(self.paths.qa_dir / f"{t.task_id}.environment.json", json.dumps(verification, indent=2))
+                raise RunStopped(f"{t.task_id}: verification environment blocked; no repair attempted")
+            if self.config.require_verification and not checks:
+                raise RunStopped("Verification commands are required before spending QA calls")
+            model_qa_ran = False
             if failed:
                 obj = {"verdict": "FAIL", "summary": "Configured verification failed before model QA",
                        "failures": [c for c in checks if c["exit_code"] != 0 or c["timed_out"]]}
-            elif changed_paths(qa_path):
+            elif verification_mutations(self.config, qa_path):
                 obj = {"verdict": "UNVERIFIED", "summary": "Configured checks modified the verification worktree"}
             else:
                 evidence = json.dumps(checks, indent=2)
@@ -805,10 +896,32 @@ class Orchestrator:
                 )
                 obj = extract_json(result.text)
                 self._normalize_task_qa(t, obj)
+                model_qa_ran = True
             obj["harness_checks"] = checks
+            obj["acceptance_checks"] = mapped
+            obj["reproduction"] = {"before": t.metadata.get("reproduction_before"), "after": reproduction_after}
+            obj["environment"] = verification
+            obj["verification_level"] = ("executed_checks_and_model" if checks else "model_only") if model_qa_ran else "deterministic_checks_only"
+            obj["artifacts"] = collect_artifacts(self.config, qa_path, self.paths.run_dir / "artifacts")
+            changes = change_evidence(self.repo, t.metadata.get("implementation_base", t.plan_base_commit or self.state.base_commit), commit, self.config, contract)
+            obj["changes"] = changes
+            if any("outside_declared_scope" in f["warnings"] for f in changes["files"]):
+                obj["verdict"] = "FAIL"
+                obj.setdefault("failures", []).append("Changes exceed operator-declared allowed_paths")
+            if obj.get("verdict") == "PASS" and (t.metadata.get("workflow") == "adaptive_low" or contract.get("risk") == "high"):
+                focused = self._review_changes(qa_path, changes["base_commit"], commit, [t.task_id])
+                obj["focused_review"] = focused
+                if self._review_requires_changes(focused):
+                    obj["verdict"] = "FAIL"
+                    obj.setdefault("failures", []).append(focused)
+            obj["baseline"] = json.loads((self.paths.run_dir / "baseline.json").read_text(encoding="utf-8")) if (self.paths.run_dir / "baseline.json").exists() else None
+            baseline_failures = {c["command"] for c in (obj["baseline"] or {}).get("checks", []) if c["exit_code"] or c["timed_out"]}
+            obj["failure_classification"] = [{"command": c["command"],
+                "classification": "also_failed_on_baseline" if c["command"] in baseline_failures else "new_failure_or_environment_change"}
+                for c in checks if c["exit_code"] or c["timed_out"]]
             obj["checkpoint_commit"] = commit
             # QA is disposable. Record if it mutated anything, but discard regardless.
-            mutation = changed_paths(qa_path)
+            mutation = verification_mutations(self.config, qa_path)
             if mutation:
                 obj.setdefault("risks", []).append(f"QA agent mutated disposable worktree paths (discarded): {mutation}")
                 if str(obj.get("verdict", "")).upper() == "PASS":
@@ -989,20 +1102,37 @@ class Orchestrator:
         if not self.config.keep_task_worktrees and t.worktree_path:
             worktree_remove(self.repo, Path(t.worktree_path), force=True)
 
+    def _review_changes(self, repo: Path, base: str, tip: str, task_ids: list[str]) -> dict:
+        evidence = change_evidence(repo, base, tip, self.config)
+        chunks = list(review_chunks(evidence, self.config.evidence_max_chars))
+        coverage, findings = [], []
+        passed = True
+        for chunk in chunks:
+            identity = hashlib.sha256(json.dumps({"base": base, "tip": tip, "chunk": chunk,
+                "provider": self.config.provider, "model": self.config.model, "effort": self.config.effort}, sort_keys=True).encode()).hexdigest()
+            cached = self.paths.reviews_dir / f"chunk-{identity}.json"
+            prompt = code_review(task_ids, base, json.dumps(chunk))
+            prompt += f"\nExact tip: {tip}. This is one complete chunk of a file, not the entire change. Inspect related files at this tip as needed."
+            if cached.exists():
+                result = json.loads(cached.read_text(encoding="utf-8"))
+            else:
+                result = extract_json(self._call(prompt, cwd=repo, role="analysis",
+                                                max_turns=self.config.max_turns_reviewer, env=self.agent_env).text)
+                self._write_artifact(cached, json.dumps(result, indent=2))
+            passed = passed and not self._review_requires_changes(result)
+            findings.extend(result.get("findings", []) if isinstance(result.get("findings"), list) else [])
+            coverage.append({k: v for k, v in chunk.items() if k != "diff"})
+        return {"verdict": "PASS" if passed else "CHANGES_REQUIRED", "findings": findings,
+                "summary": "All diff chunks submitted for review", "base_commit": base, "checkpoint_commit": tip,
+                "coverage": coverage, "files": [f["path"] for f in evidence["files"]]}
+
     def _run_code_review(self) -> bool:
         assert self.state is not None
         integration = Path(self.state.integration_worktree)
         base = self.state.last_review_commit or self.state.base_commit
         current = head(integration)
         batch = [tid for tid, task in self.state.tasks.items() if task.completed_commit and git(integration, "merge-base", "--is-ancestor", base, task.completed_commit, check=False).code == 0]
-        diff = diff_range(integration, base, current)
-        review_obj = extract_json(self._call(
-            code_review(batch, base, diff[:self.config.evidence_max_chars]),
-            cwd=integration,
-            role="analysis",
-            max_turns=self.config.max_turns_reviewer,
-            env=self.agent_env,
-        ).text)
+        review_obj = self._review_changes(integration, base, current, batch)
         stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         review_path = self.paths.reviews_dir / f"code_review_{stamp}.json"
         self._write_artifact(review_path, json.dumps(review_obj, indent=2))
@@ -1063,11 +1193,18 @@ class Orchestrator:
                 qa_path = self.paths.worktrees_root / "qa" / f"review-{int(time.time()*1000)}"
                 detached_worktree_add(self.repo, qa_path, commit)
                 try:
-                    qa_obj = extract_json(self._call(
-                        review_qa(payload, self.config.verification_commands),
-                        cwd=qa_path, role="read_only", max_turns=self.config.max_turns_qa, env=self.agent_env,
-                    ).text)
-                    mutation = changed_paths(qa_path)
+                    verification = execute_checks(self.config, qa_path, self.agent_env)
+                    if verification["status"] in {"FAIL", "ENVIRONMENT_BLOCKED"} or (self.config.require_verification and not verification["checks"]):
+                        qa_obj = {"verdict": "UNVERIFIED", "summary": "Deterministic review-fix verification did not pass"}
+                    else:
+                        qa_obj = extract_json(self._call(
+                            review_qa(payload, []) + "\nExecuted checks at this commit:\n" + json.dumps(verification),
+                            cwd=qa_path, role="read_only", max_turns=self.config.max_turns_qa, env=self.agent_env,
+                        ).text)
+                    qa_obj["harness_checks"] = verification["checks"]
+                    qa_obj["environment"] = verification
+                    qa_obj["checkpoint_commit"] = commit
+                    mutation = verification_mutations(self.config, qa_path)
                     if mutation:
                         qa_obj.setdefault("failures", []).append(f"Review QA mutated disposable paths: {mutation}")
                         qa_obj["verdict"] = "UNVERIFIED"
@@ -1084,10 +1221,7 @@ class Orchestrator:
                     continue
                 # Re-review after QA recheck, matching the intended REVIEW_PROVIDED -> FIX -> QA_RECHECK -> review loop.
                 base = self.state.last_review_commit or self.state.base_commit
-                rereview = extract_json(self._call(
-                    code_review([], base, diff_range(integration, base, head(integration))[:self.config.evidence_max_chars]),
-                    cwd=integration, role="analysis", max_turns=self.config.max_turns_reviewer, env=self.agent_env,
-                ).text)
+                rereview = self._review_changes(integration, base, head(integration), [])
                 self._write_artifact(self.paths.reviews_dir / f"review_rereview_{attempt}.json", json.dumps(rereview, indent=2))
                 if not self._review_requires_changes(rereview):
                     return True

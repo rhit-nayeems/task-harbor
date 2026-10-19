@@ -1,7 +1,7 @@
 # Evaluation
 
 The automated test suite validates the harness using simulated model responses.
-It does not measure how well Claude solves real engineering tasks.
+It does not measure how well a model solves real engineering tasks.
 
 `evaluations/run.py` provides a small opt-in live benchmark: three independent
 Python tasks covering boundary behavior, normalization, and a numeric bug. An
@@ -37,3 +37,63 @@ zero. The offline JSON report exposes the base metrics for further analysis.
 For GPT, use `--provider codex --model gpt-6.1-sol --live` with an available
 model and authenticated Codex CLI. GPT runs retain the call ceiling but have no
 dollar cap; the Codex CLI does not expose the required cost-budget control.
+
+## Compare a direct agent with Task Harbor
+
+`task-harbor compare` runs each task in two fresh clones at a pinned source commit.
+Both arms use the same configured provider, model, effort, task, and environment
+recipe. The direct arm is one agent invocation with its normal tool loop. Harbor
+uses its configured workflow. Ordering is shuffled with a fixed seed.
+
+Create `comparison.json` next to your project, replacing the repository path and
+commit. Use a model available to your account:
+
+```json
+{
+  "repo": "./my-project",
+  "commit": "REPLACE_WITH_COMMIT_SHA",
+  "config": {
+    "provider": "codex",
+    "model": "REPLACE_WITH_AVAILABLE_MODEL",
+    "verification_commands": ["python -m pytest tests"],
+    "max_agent_calls": 40
+  },
+  "tasks": [{
+    "id": "SEARCH-1",
+    "title": "Handle empty search queries",
+    "acceptance_criteria": ["An empty query returns an empty result list"],
+    "grader_commands": ["python /absolute/path/to/independent_grader.py"]
+  }]
+}
+```
+
+```sh
+task-harbor compare --manifest comparison.json --output prepared
+task-harbor compare --manifest comparison.json --output experiment --repetitions 3 --live
+```
+
+Preparation validates and saves the manifest and schedule without invoking agents
+or graders. Live execution consumes provider usage and runs your shell commands.
+Use a new output directory each time. The repository needs a configured Git author.
+Task agreements can be included under each task's `contract` field.
+
+Every trial retains its checkout and `result.json`. Aggregate `results.json` and
+`summary.json` include unsuccessful trials. Results record command outcomes,
+usage, elapsed time, provider CLI version, configuration, and source commit.
+The legacy `accepted` field means all independent grader commands passed; it is
+not a human acceptance decision. Human outcome and active time remain null until
+you collect that evidence separately. Normal Harbor runs support `feedback` for
+recording review time and acceptance.
+
+The grader is omitted from model prompts, but agents are not isolated from host
+files. This is not an adversarial benchmark sandbox. Keep graders outside the
+managed source tree, inspect outputs, and ensure they actually detect regressions.
+The benchmark does not enforce equal total tokens or agent turns between arms;
+report the recorded cost and effort alongside completion. A Harbor run that pauses
+is still graded on its integrated result, with the stop reason retained. Provider
+costs can be unavailable and must not be treated as free.
+
+No live comparison results are included in this release. The automated tests use
+fake providers and real temporary Git repositories to check the experiment
+machinery. To establish product value, use representative tasks, repeated trials,
+and human review records, then measure whether users return voluntarily.

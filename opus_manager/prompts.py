@@ -14,6 +14,7 @@ def task_context(t: BacklogTask) -> str:
         "acceptance_criteria": t.acceptance_criteria,
         "acceptance_ids": {f"AC-{i+1}": text for i, text in enumerate(t.acceptance_criteria)},
         "next_action": t.next_action,
+        "task_agreement": t.metadata.get("contract", {}),
     }, indent=2)
 
 
@@ -62,8 +63,10 @@ Proposed plan:
 {plan}
 ---
 
+If a material user decision is missing, return verdict NEEDS_CLARIFICATION and questions as a list of concise strings. Do not invent the answers.
+
 Return ONLY JSON:
-{{"verdict":"APPROVED"|"REWORK", "feedback":"concise, actionable review feedback", "material_risks":["..."]}}
+{{"verdict":"APPROVED"|"REWORK"|"NEEDS_CLARIFICATION", "feedback":"concise, actionable review feedback", "material_risks":["..."]}}
 Use REWORK only for material gaps, incorrect assumptions, missing dependency/acceptance coverage, or a plan likely to cause bad implementation. Preserve implementer discretion on non-material design choices.
 """
 

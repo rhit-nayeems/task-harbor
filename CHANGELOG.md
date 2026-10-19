@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0
+
+- Add preflight recipes and baseline checks before model work.
+- Add task agreements, clarification answers, and an opt-in low-risk workflow.
+- Record complete diffs, reproduction results, check artifacts, and human feedback.
+- Check review fixes deterministically and stop unchanged failure loops.
+- Add opt-in direct-agent comparisons with independent graders and failure records.
+
 ## 0.6.0 — Project and run controls
 
 - Add setup, validation, confirmed start/resume, and stop controls to the dashboard.

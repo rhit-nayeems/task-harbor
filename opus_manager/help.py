@@ -9,6 +9,8 @@ GUIDE = """TASK HARBOR — GETTING STARTED
 4. Set verification_commands to your test/build commands. Set max_agent_calls
    to limit usage; by default calls are unlimited.
 5. Check and run:
+   task-harbor preflight    (suggests checks; no model calls)
+   task-harbor preflight --run-checks
    task-harbor validate
    task-harbor doctor       (makes a model call)
    task-harbor manage       (starts paid/subscription agent work)
@@ -26,6 +28,18 @@ Closing the dashboard does not stop a run. Use:
    task-harbor resume --run-id RUN_ID
 Stop waits for in-flight calls to finish. Resume keeps existing usage counts.
 Review results on manager/integration/RUN_ID. Nothing is automatically pushed.
+
+EVIDENCE AND QUESTIONS
+Press E in the dashboard to inspect a task, P for suggested checks.
+   task-harbor review --run-id RUN_ID --html review.html
+   task-harbor questions --run-id RUN_ID
+   task-harbor answer --run-id RUN_ID --task TASK_ID --question Q-1 --text "Your answer"
+   task-harbor resume --run-id RUN_ID
+Record your review outcome separately from model QA:
+   task-harbor feedback --run-id RUN_ID --task TASK_ID --outcome accepted --minutes 5
+Compare against a direct agent with an operator-written task manifest:
+   task-harbor compare --manifest comparison.json --output prepared
+Preparation calls no models. Add --live with a new output folder to run both arms.
 
 TROUBLESHOOTING
 Command not found? Use python -m task_harbor with the same arguments.

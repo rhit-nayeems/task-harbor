@@ -57,7 +57,7 @@ stops the sequence and skips model QA. Output is bounded by `evidence_max_chars`
 Checks that modify Git-visible files cause verification to be rejected. For
 Codex, run checks that need filesystem writes here rather than relying on the
 read-only QA agent. QA receives the command results and checks each acceptance
-criterion. Review-fix QA selects its own checks.
+criterion. Review fixes run the same configured checks before model QA.
 
 ## Usage and spending
 
@@ -88,3 +88,8 @@ managers from advancing the same run. Cleanup also respects that lock.
 `retry` requires a stopped run and a blocked task. It resets task retry counters
 and starts a new implementer session. Rejected plans still need review, and
 dependencies remain enforced. `resume` clears an explicit stop request.
+
+## Verification and task agreements
+
+See [the verification guide](VERIFICATION.md) for environment recipes, strict
+checks, retained artifacts, clarification, and the opt-in adaptive workflow.

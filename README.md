@@ -7,6 +7,22 @@ Git worktrees, and checks the results before merging them into a local branch.
 It does not push changes or merge them into your original branch. You review the
 result on `manager/integration/<run-id>`.
 
+## Check the work before accepting it
+
+Configure tests once, then inspect the exact commands, checkpoint, and full diff
+for each task. Task agreements capture scope and unanswered questions. A failed
+check stops approval; a missing environment pauses work before more model calls.
+
+- [Set up checks and task agreements](docs/VERIFICATION.md)
+- [Compare Harbor with a direct agent](EVALUATION.md)
+
+```sh
+task-harbor preflight
+task-harbor review --run-id RUN_ID --html review.html
+```
+
+In the dashboard, press **E** for task evidence or **P** for suggested checks.
+
 ## Install
 
 You need Python 3.11+, Git, and either Claude Code or Codex installed and signed in.
@@ -60,6 +76,7 @@ task-harbor` or `pipx uninstall task-harbor`, respectively.
 
 ![First-run screen](docs/terminal-welcome.svg)
 ![Built-in help screen](docs/terminal-help.svg)
+![Task evidence screen with sample data](docs/terminal-evidence.svg)
 
 </details>
 

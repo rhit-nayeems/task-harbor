@@ -17,6 +17,7 @@ from .config import Config
 from .reporting import run_report
 from .help import GUIDE
 from .desktop_actions import launch_run
+from .reporting import review_text
 
 
 class ConfirmRun(ModalScreen):
@@ -45,17 +46,21 @@ class ConfirmRun(ModalScreen):
 
 
 class HelpScreen(ModalScreen):
-    BINDINGS = [("escape", "dismiss", "Close help"), ("f1", "dismiss", "Close help")]
+    BINDINGS = [("escape", "dismiss", "Close"), ("f1", "dismiss", "Close")]
     DEFAULT_CSS = """
     HelpScreen { align: center middle; background: #000000 70%; }
     #help-panel { width: 85%; height: 90%; border: round #66e3c4; padding: 1 2; background: #111e2c; }
     #help-text { height: auto; }
     """
 
+    def __init__(self, content: str = GUIDE):
+        super().__init__()
+        self.content = content
+
     def compose(self) -> ComposeResult:
         with VerticalScroll(id="help-panel"):
-            yield Button("Close help (Esc)", id="close-help", variant="primary")
-            yield Static(GUIDE, id="help-text", markup=False)
+            yield Button("Close (Esc)", id="close-help", variant="primary")
+            yield Static(self.content, id="help-text", markup=False)
 
     def on_button_pressed(self) -> None:
         self.dismiss()
@@ -91,7 +96,7 @@ def event_tail(path: Path) -> str:
 
 class HarborApp(App):
     TITLE = "Task Harbor"
-    BINDINGS = [("f1", "help", "Help"), ("q", "quit", "Quit"), ("r", "reload", "Refresh"), ("tab", "focus_next", "Next pane")]
+    BINDINGS = [("f1", "help", "Help"), ("e", "evidence", "Evidence"), ("p", "preflight", "Preflight"), ("q", "quit", "Quit"), ("r", "reload", "Refresh"), ("tab", "focus_next", "Next pane")]
     CSS = """
     Screen { background: #0b111b; color: #d9e4ef; }
     #brand { height: 5; padding: 1 2; background: #111e2c; color: #66e3c4; text-style: bold; }
@@ -145,6 +150,7 @@ class HarborApp(App):
             yield Button("New run", id="start", variant="success")
             yield Button("Resume", id="resume")
             yield Button("Stop", id="stop", variant="warning")
+            yield Button("Review", id="review")
         yield Static("", id="action-result", markup=False)
         yield Static("No runs yet.\n\n1  task-harbor init\n2  Edit BACKLOG.md and .manager/config.json\n3  task-harbor validate\n4  task-harbor manage (in another terminal)\n\nPress F1 for setup help. This dashboard will show the run when it starts.", id="welcome", markup=False)
         yield Select([], prompt="Choose a run", id="run-picker")
@@ -173,11 +179,32 @@ class HarborApp(App):
     def action_help(self) -> None:
         self.push_screen(HelpScreen())
 
+    def action_evidence(self) -> None:
+        if self.report and self.report["tasks"]:
+            row = self.query_one(DataTable).cursor_row
+            task = self.report["tasks"][min(row, len(self.report["tasks"]) - 1)]
+            self.push_screen(HelpScreen(review_text(self.report, task["id"])))
+        else:
+            self.action_message("Select a saved run and task to inspect its evidence.")
+
+    def action_preflight(self) -> None:
+        from .preflight import suggestions
+        suggested = suggestions(self.repo)
+        self.push_screen(HelpScreen("PROJECT PREFLIGHT\n\nSuggested checks (not executed):\n"
+                                    + "\n".join(suggested or ["No known commands detected."])
+                                    + "\n\nReview verification_commands, setup_commands, required_env and required_executables in .manager/config.json.\n"
+                                    "Then run: task-harbor preflight --run-checks\n\n"
+                                    "Set require_verification to true to pause before model calls when baseline checks do not pass."))
+
     def action_message(self, message: str) -> None:
         self.screen_stack[0].query_one("#action-result", Static).update(message)
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         action = event.button.id
+        if action == "review":
+            event.stop()
+            self.action_evidence()
+            return
         if action not in {"setup", "validate", "start", "resume", "stop"}:
             return
         event.stop()
@@ -356,5 +383,6 @@ class HarborApp(App):
             f'Next: {task["next_action"] or "—"}\n'
             f'Blocked: {task["blocked_reason"] or "No"}\n\n'
             f'Checkpoint: {task["checkpoint"] or "—"}\n\n'
+            f'Verification: {task.get("evidence", {}).get("verification_level", "not recorded")}\nPress E for evidence and diff.\n\n'
             + "\n".join(f'{key}: {value:,}' for key, value in tokens.items())
         )
