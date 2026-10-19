@@ -53,3 +53,17 @@ Resume reloads and reconciles state after acquiring the run lock. Repair and
 fresh-restart intent are saved before calls. Review-fix work is still recovered
 by repeating cumulative review; individual review-fix turns are not exactly-once.
 A hard crash can leave child processes alive. Stop them before resuming.
+
+## Provider adapters (v0.4)
+
+`providers.py` selects Claude Code or Codex using `Config.provider`. Both adapters
+return `AgentResult` with response text, a resumable session ID, and normalized
+usage metadata. `ClaudeResult` and the orchestrator's `claude` property remain
+compatibility aliases. New code uses `agent`.
+
+Codex JSONL must include a thread, final message, and completed turn. Error,
+failed-turn, mismatched-session, malformed, and incomplete responses fail closed.
+Provider identity is persisted with the run and checked again after locking on
+resume. Historical states default to Claude. Codex costs remain unknown rather
+than zero; call counts and process timeouts work for both providers. Claude's
+per-call turn and dollar controls are not claimed for Codex.

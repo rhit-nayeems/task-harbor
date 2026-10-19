@@ -8,9 +8,11 @@ from pathlib import Path
 
 @dataclass
 class Config:
+    provider: str = "claude"
     model: str = "opus"
     effort: str = "medium"
     claude_bin: str = "claude"
+    codex_bin: str = "codex"
     max_active_planners: int = 4
     max_fix_attempts_before_restart: int = 2
     max_fresh_implementer_generations: int = 3
@@ -46,6 +48,15 @@ class Config:
     task_branch_prefix: str = "manager/task"
 
     def __post_init__(self) -> None:
+        if self.provider not in {"claude", "codex"}:
+            raise ValueError("provider must be claude or codex")
+        if not isinstance(self.model, str) or not self.model.strip():
+            raise ValueError("model must be a nonempty model identifier")
+        if self.provider == "codex":
+            if not self.model.startswith("gpt-"):
+                raise ValueError("Set model to a GPT model available in your Codex account when provider=codex")
+            if self.max_run_cost_usd is not None or self.max_call_cost_usd is not None:
+                raise ValueError("Codex dollar budgets are unsupported; set max_run_cost_usd and max_call_cost_usd to null and use call limits")
         nonnegative = {"max_fix_attempts_before_restart", "max_plan_reworks", "max_code_review_fix_attempts"}
         for name, value in asdict(self).items():
             if name.startswith("max_turns_") or name in nonnegative | {
@@ -74,11 +85,11 @@ class Config:
             value = Path(getattr(self, name))
             if value.is_absolute() or ".." in value.parts or str(value) == ".":
                 raise ValueError(f"{name} must be a relative path inside the repository")
-        allowed_effort = {"low", "medium", "high", "xhigh", "max"}
+        allowed_effort = {"low", "medium", "high", "xhigh", "max"} if self.provider == "claude" else {"low", "medium", "high", "xhigh", "max", "ultra"}
         self.effort = self.effort.lower()
         if self.effort not in allowed_effort:
             raise ValueError(
-                f"Invalid Claude effort {self.effort!r}; expected one of: "
+                f"Invalid {'Claude' if self.provider == 'claude' else 'Codex'} effort {self.effort!r}; expected one of: "
                 + ", ".join(sorted(allowed_effort))
             )
 

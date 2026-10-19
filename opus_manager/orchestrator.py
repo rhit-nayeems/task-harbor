@@ -13,6 +13,8 @@ from typing import Any
 
 from .backlog import parse_backlog, render_backlog
 from .claude import ClaudeClient, extract_json
+from .codex import CodexClient
+from .providers import create_client
 from .config import Config
 from .gitops import (
     branch_exists,
@@ -101,12 +103,21 @@ class Orchestrator:
         for p in [run_dir, self.paths.plans_dir, self.paths.qa_dir, self.paths.reviews_dir, self.paths.diagnostics_dir, self.paths.logs_dir]:
             p.mkdir(parents=True, exist_ok=True)
         self.state = state
-        self.claude = ClaudeClient(config, self.paths.hooks_dir)
+        self.agent = create_client(config, self.paths.hooks_dir)
         self.agent_env = remote_block_env(self.paths.hooks_dir)
         self._persist_lock = threading.Lock()
         self._run_lock: Any | None = None
         self._resuming = False
         self.usage = UsageLedger(run_dir / "usage.json", config)
+
+    @property
+    def claude(self):
+        """Compatibility alias; new integrations should use agent."""
+        return self.agent
+
+    @claude.setter
+    def claude(self, value):
+        self.agent = value
 
     @classmethod
     def start(cls, repo: Path, config: Config, backlog_path: Path | None = None) -> "Orchestrator":
@@ -151,6 +162,7 @@ class Orchestrator:
         worktree_add(repo, integration_path, integration_branch, base_commit, create_branch=True)
         state = ManagerState(
             run_id=run_id,
+            provider=config.provider,
             repo=str(repo),
             integration_branch=integration_branch,
             integration_worktree=str(integration_path),
@@ -171,6 +183,8 @@ class Orchestrator:
         if not state_path.exists():
             raise ManagerError(f"Run not found: {run_id}")
         state = load_state(state_path)
+        if state.provider != config.provider:
+            raise ManagerError("Cannot change provider while resuming a run; start a new run instead")
         obj = cls(repo, config, run_id, state=state)
         obj._resuming = True
         return obj
@@ -256,10 +270,10 @@ class Orchestrator:
         if task_match is None:
             task_match = re.search(r"# Clean restart packet [^\w]+ ([A-Za-z0-9_.-]+)", prompt)
         call_id, cap = self.usage.reserve(kwargs["role"], task_match.group(1) if task_match else None)
-        if isinstance(self.claude, ClaudeClient):
+        if isinstance(self.agent, (ClaudeClient, CodexClient)):
             kwargs["budget_usd"] = cap
         try:
-            result = self.claude.run(prompt, **kwargs)
+            result = self.agent.run(prompt, **kwargs)
         except BaseException as exc:
             self.usage.finish(call_id, getattr(exc, "raw", None), type(exc).__name__)
             raise
@@ -267,16 +281,18 @@ class Orchestrator:
         return result
 
     def probe(self) -> None:
-        result = self.claude.probe(Path(self.state.integration_worktree))
+        result = self.agent.probe(Path(self.state.integration_worktree))
         if result.text.strip().upper() != "OK":
-            raise ManagerError(f"Claude probe returned unexpected response: {result.text}")
-        self._event("CLAUDE_PROBE_OK")
+            raise ManagerError(f"Agent probe returned unexpected response: {result.text}")
+        self._event("AGENT_PROBE_OK")
 
     def run(self) -> None:
         self._acquire_run_lock()
         try:
             if self._resuming:
                 self.state = load_state(self.paths.state_file)
+                if self.state.provider != self.config.provider:
+                    raise ManagerError("Cannot change provider while resuming a run")
                 if not Path(self.state.integration_worktree).exists():
                     worktree_add(self.repo, Path(self.state.integration_worktree), self.state.integration_branch,
                                  self.state.integration_branch, create_branch=False)

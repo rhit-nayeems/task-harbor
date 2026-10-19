@@ -1,32 +1,86 @@
-# Opus Harbor
+# Task Harbor
 
 **Bring autonomous engineering work safely into port.**
 
-Opus Harbor is a local engineering supervisor for Claude Code. Give it a Git
+Task Harbor is a local engineering supervisor for Claude Code and GPT models through Codex. Give it a Git
 repository and a Markdown backlog: it plans work, implements in isolated
 worktrees, verifies checkpoint commits, and integrates passing changes on a
-local branch. Python controls the workflow; Claude supplies engineering judgment.
+local branch. Python controls the workflow; the selected coding agent supplies engineering judgment.
 
 Python 3.11+ · No runtime Python dependencies · Windows and Linux
 
 ## Quick start
 
-Requires Git, an authenticated Claude Code CLI, and a target repository with at
+Requires Git, an authenticated Claude Code or Codex CLI, and a target repository with at
 least one commit and a configured Git author.
 
 ```powershell
 python -m pip install -e .
-opus-harbor --repo "C:\path\to\app" init
+task-harbor --repo "C:\path\to\app" init
 # Edit the generated BACKLOG.md with real tasks and acceptance criteria.
-opus-harbor --repo "C:\path\to\app" validate
-opus-harbor --repo "C:\path\to\app" doctor
-opus-harbor --repo "C:\path\to\app" manage
+task-harbor --repo "C:\path\to\app" validate
+task-harbor --repo "C:\path\to\app" doctor
+task-harbor --repo "C:\path\to\app" manage
 ```
 
 `doctor` makes one small model call. `validate`, status, reports, and control
-commands do not. The legacy `opus-manager` command and `python -m opus_manager`
+commands do not. The legacy `opus-harbor` and `opus-manager` commands and `python -m opus_manager`
 remain supported. Install from this toolkit's directory; `--repo` selects the
 application to manage.
+
+## Use GPT through Codex
+
+Install the Codex CLI and authenticate with `codex login`. Set these fields in
+`.manager/config.json` after initialization, before starting a **new** run:
+
+```json
+{
+  "provider": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "medium",
+  "codex_bin": "codex",
+  "max_agent_calls": 100,
+  "max_task_agent_calls": 20,
+  "max_run_cost_usd": null,
+  "max_call_cost_usd": null
+}
+```
+
+Choose a GPT model available to your Codex account. The example uses
+`gpt-6.1-sol`; access depends on your account, client, and workspace. See the
+[official model list](https://learn.chatgpt.com/docs/models).
+
+Then run `task-harbor --repo <repo> doctor` and `manage`. The same provider handles
+planning, implementation, QA, diagnosis, and review. To use Claude, set
+`provider` to `claude` and `model` to `opus` (the defaults), or another supported
+Claude model. Existing configurations migrate to `provider: "claude"`.
+
+Runs persist their provider. Switching providers requires a new run so a Claude
+session ID is never sent to Codex or vice versa. GPT repairs resume the exact
+Codex thread; clean restarts create new threads. GPT token counts are recorded
+from JSONL completion events. No dollar price is inferred from token counts.
+
+| Control | Claude Code | Codex / GPT |
+| --- | --- | --- |
+| Run/task agent-call limits | Supported | Supported |
+| Process timeout | Supported | Supported |
+| CLI turn limit (`max_turns_*`) | Supported | Not available; use timeouts/call limits |
+| Dollar caps | Estimated CLI caps | Rejected; set both dollar settings to `null` |
+| Analysis and QA | Plan permissions / disposable QA | Read-only sandbox |
+| Implementation | Edit permissions / isolated worktree | Workspace-write sandbox, shell network disabled |
+| Session repair | Exact Claude session | Exact Codex thread |
+
+Codex runs unattended with approval policy `never`. It never requests sandbox
+bypass. Read-only QA may be unable to run tests requiring writes; configure those
+commands in `verification_commands` so the Python harness executes them in the
+disposable worktree first. CLI sandbox behavior depends on OS configuration; use
+`doctor` to verify your setup. User config is excluded with `--ignore-user-config` while saved authentication
+is reused. Project/managed configuration and external tools are still subject to
+the installed CLI's behavior; a filesystem sandbox is not a universal boundary
+for external services. Use a current Codex CLI supporting this flag. On Windows, npm installations use Node's Codex entry point
+directly, avoiding shell-wrapper quoting. `codex_bin` can also point to a native
+executable. CLI integration follows the
+[official non-interactive guide](https://learn.chatgpt.com/docs/non-interactive-mode).
 
 ## How it works
 
@@ -34,7 +88,7 @@ application to manage.
 2. Run up to four independent planners, then review each plan.
 3. Implement one task at a time in its own Git branch and worktree.
 4. Create a checkpoint and run configured shell checks in a disposable worktree.
-5. If checks pass, ask independent Claude QA for evidence covering every acceptance ID.
+5. If checks pass, ask independent agent QA for evidence covering every acceptance ID.
 6. Merge passing work into a local integration branch.
 7. Review cumulative changes every three passes by default. Review fixes receive independent QA and re-review.
 
@@ -82,13 +136,13 @@ run; resumed runs use persisted intent, not edits to the Markdown board.
 ## Controls and visibility
 
 ```powershell
-opus-harbor --repo "C:\path\to\app" status --run-id RUN_ID
-opus-harbor --repo "C:\path\to\app" report --run-id RUN_ID
-opus-harbor --repo "C:\path\to\app" report --run-id RUN_ID --html report.html
-opus-harbor --repo "C:\path\to\app" stop --run-id RUN_ID
-opus-harbor --repo "C:\path\to\app" resume --run-id RUN_ID
-opus-harbor --repo "C:\path\to\app" retry --run-id RUN_ID --task AUTH-001
-opus-harbor --repo "C:\path\to\app" cleanup --run-id RUN_ID
+task-harbor --repo "C:\path\to\app" status --run-id RUN_ID
+task-harbor --repo "C:\path\to\app" report --run-id RUN_ID
+task-harbor --repo "C:\path\to\app" report --run-id RUN_ID --html report.html
+task-harbor --repo "C:\path\to\app" stop --run-id RUN_ID
+task-harbor --repo "C:\path\to\app" resume --run-id RUN_ID
+task-harbor --repo "C:\path\to\app" retry --run-id RUN_ID --task AUTH-001
+task-harbor --repo "C:\path\to\app" cleanup --run-id RUN_ID
 ```
 
 `stop` is graceful: in-flight calls finish, then the supervisor pauses at the next
@@ -113,6 +167,7 @@ older configurations automatically.
 
 ```json
 {
+  "provider": "claude",
   "model": "opus",
   "effort": "medium",
   "scheduler": "deterministic",
@@ -184,10 +239,10 @@ python -m pip install -e ".[dev]"
 python -m pytest
 ```
 
-Tests use fake Claude responses and temporary real Git repositories. They cover
+Tests use simulated Claude/Codex responses and temporary real Git repositories. They cover
 integration, clean restarts, budgets, duplicate acceptance evidence, interruption
 recovery, locking, preflight failures, command timeouts, and operator controls.
-CI runs on Windows and Linux with Python 3.11 and 3.14. Live Claude compatibility
+CI runs on Windows and Linux with Python 3.11 and 3.14. Live provider compatibility
 and engineering quality need separate evaluation; unit tests cannot establish them.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md), [WORKFLOW.md](WORKFLOW.md), and

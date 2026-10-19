@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0 — Task Harbor
+
+- Add GPT through Codex CLI, including JSONL usage and exact thread resumption.
+- Introduce a provider factory and shared result/error types.
+- Persist provider identity and reject cross-provider run resumes.
+- Use read-only Codex analysis/QA and workspace-write implementation.
+- Reject unsupported Codex dollar caps; retain call limits and timeouts.
+- Rename the project and primary command; keep both legacy command aliases.
+- Add adapter, error handling, Windows launcher, and full GPT workflow tests.
+
 ## 0.3.0 — Opus Harbor
 
 - Rename the distribution and primary CLI; retain the original import and CLI alias.

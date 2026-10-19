@@ -205,7 +205,7 @@ def repo_snapshot(repo: Path) -> str:
 def remote_block_env(hooks_dir: Path) -> dict[str, str]:
     hooks_dir.mkdir(parents=True, exist_ok=True)
     hook = hooks_dir / "pre-push"
-    hook.write_text("#!/bin/sh\necho 'Remote git push blocked by Opus Harbor' >&2\nexit 1\n", encoding="utf-8")
+    hook.write_text("#!/bin/sh\necho 'Remote git push blocked by Task Harbor' >&2\nexit 1\n", encoding="utf-8")
     try:
         hook.chmod(0o755)
     except OSError:

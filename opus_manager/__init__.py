@@ -1,3 +1,3 @@
-"""Opus Harbor: local Claude engineering supervisor."""
+"""Task Harbor: local Claude and GPT engineering supervisor."""
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"

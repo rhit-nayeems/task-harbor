@@ -84,7 +84,7 @@ def render_backlog(path: Path, tasks: dict[str, BacklogTask]) -> None:
     parts = [
         "# Backlog",
         "",
-        "> Managed by Opus Harbor. Edit task intent/priority/dependencies/acceptance criteria when needed; runtime fields are synchronized by the manager.",
+        "> Managed by Task Harbor. Edit task intent/priority/dependencies/acceptance criteria when needed; runtime fields are synchronized by the manager.",
         "",
     ]
     for t in tasks.values():

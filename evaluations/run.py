@@ -37,8 +37,12 @@ def grade(worktree: Path) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("directory", type=Path, help="New benchmark directory; must not exist")
-    parser.add_argument("--live", action="store_true", help="Actually invoke Claude (consumes usage)")
+    parser.add_argument("--live", action="store_true", help="Actually invoke the selected provider (consumes usage)")
+    parser.add_argument("--provider", choices=["claude", "codex"], default="claude")
+    parser.add_argument("--model", help="Explicit model identifier; required for Codex")
     args = parser.parse_args()
+    if args.provider == "codex" and not args.model:
+        parser.error("--model is required with --provider codex")
     root = args.directory.resolve()
     root.mkdir(parents=True, exist_ok=False)
     repo = root / "repo"
@@ -56,7 +60,10 @@ def main() -> int:
     if not args.live:
         print(f"Prepared fixtures at {repo}. No model calls made. Use a new directory with --live for a paid run.")
         return 0
-    cfg = Config(max_agent_calls=40, max_task_agent_calls=12, max_run_cost_usd=10, max_call_cost_usd=2,
+    cfg = Config(provider=args.provider, model=args.model or "opus",
+                 max_agent_calls=40, max_task_agent_calls=12,
+                 max_run_cost_usd=10 if args.provider == "claude" else None,
+                 max_call_cost_usd=2 if args.provider == "claude" else None,
                  final_code_review=True)
     manager = Orchestrator.start(repo, cfg)
     manager.run()

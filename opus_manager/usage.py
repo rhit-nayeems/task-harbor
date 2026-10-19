@@ -48,7 +48,7 @@ class UsageLedger:
                 cap = min(cap or remaining / cfg.max_active_planners, remaining)
             call_id = uuid.uuid4().hex
             calls.append({"id": call_id, "role": role, "task": task, "status": "pending",
-                          "started_at": time.time(), "reserved_usd": cap, "cost_usd": None})
+                          "provider": cfg.provider, "model": cfg.model, "started_at": time.time(), "reserved_usd": cap, "cost_usd": None})
             atomic_write_json(self.path, data)
             return call_id, cap
 

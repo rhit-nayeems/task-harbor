@@ -95,7 +95,8 @@ class ManagerState:
     event_seq: int = 0
     paused: bool = False
     stop_reason: str | None = None
-    schema_version: int = 2
+    schema_version: int = 3
+    provider: str = "claude"
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)

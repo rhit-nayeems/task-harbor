@@ -23,14 +23,14 @@ def _repo(value: str) -> Path:
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        prog="opus-harbor",
-        description="Claude-only backlog orchestrator with isolated planning, implementation, QA, escalation, and code review.",
+        prog="task-harbor",
+        description="Multi-provider backlog orchestrator with isolated planning, implementation, QA, escalation, and code review.",
     )
     p.add_argument("--repo", type=_repo, default=Path.cwd(), help="Target Git repository (default: current directory)")
     sub = p.add_subparsers(dest="command", required=True)
 
     sub.add_parser("init", help="Create .manager/config.json and a BACKLOG.md template if absent")
-    sub.add_parser("doctor", help="Validate Git, backlog, configuration, and Claude CLI connectivity")
+    sub.add_parser("doctor", help="Validate Git, backlog, configuration, and agent CLI connectivity")
     sub.add_parser("validate", help="Validate backlog structure and dependency graph without running agents")
 
     manage = sub.add_parser("manage", help="Start a new autonomous manager run")
@@ -93,13 +93,13 @@ def cmd_validate(repo: Path, cfg: Config) -> int:
 def cmd_doctor(repo: Path, cfg: Config) -> int:
     cmd_validate(repo, cfg)
     # A transient throwaway run object is unnecessary; invoke Claude through a small temporary run context.
-    from .claude import ClaudeClient
+    from .providers import create_client
     hooks = repo / cfg.manager_dir / "doctor-hooks"
-    client = ClaudeClient(cfg, hooks)
+    client = create_client(cfg, hooks)
     result = client.probe(repo)
     if result.text.strip().upper() != "OK":
-        raise ManagerError(f"Claude probe failed: {result.text}")
-    print(f"Claude CLI: OK (model={cfg.model}, effort={cfg.effort})")
+        raise ManagerError(f"Agent probe failed: {result.text}")
+    print(f"{cfg.provider} CLI: OK (model={cfg.model}, effort={cfg.effort})")
     print(f"Git branch: {git(repo, 'branch', '--show-current').stdout}")
     print("Doctor checks passed.")
     return 0

@@ -3,9 +3,9 @@ requires = ["setuptools>=75"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "opus-harbor"
-version = "0.3.0"
-description = "Claude-only backlog orchestrator for planning, implementation, QA, escalation, and periodic code review."
+name = "task-harbor"
+version = "0.4.0"
+description = "Claude and GPT backlog orchestrator for planning, implementation, QA, escalation, and periodic code review."
 requires-python = ">=3.11"
 authors = [{name = "rhit-nayeems"}]
 dependencies = []
@@ -14,10 +14,11 @@ dependencies = []
 dev = ["pytest>=8"]
 
 [project.urls]
-Repository = "https://github.com/rhit-nayeems/opus-harbor"
-Issues = "https://github.com/rhit-nayeems/opus-harbor/issues"
+Repository = "https://github.com/rhit-nayeems/task-harbor"
+Issues = "https://github.com/rhit-nayeems/task-harbor/issues"
 
 [project.scripts]
+task-harbor = "opus_manager.cli:main"
 opus-harbor = "opus_manager.cli:main"
 opus-manager = "opus_manager.cli:main"
 

@@ -3,25 +3,14 @@ from __future__ import annotations
 import json
 import re
 import subprocess
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 from .config import Config
 
 
-class ClaudeError(RuntimeError):
-    def __init__(self, message: str, raw: dict | None = None):
-        super().__init__(message)
-        self.raw = raw
-
-
-@dataclass
-class ClaudeResult:
-    text: str
-    session_id: str | None
-    raw: dict[str, Any]
-    returncode: int
+# Backward-compatible imports for existing integrations.
+from .agent import AgentError as ClaudeError, AgentResult as ClaudeResult
 
 
 class ClaudeClient:

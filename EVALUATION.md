@@ -33,3 +33,7 @@ versions and configuration with each experiment. Compare deterministic versus
 model scheduling and optional final review on the same fixtures. Do not call an
 unverified or budget-stopped task successful, and do not treat missing cost as
 zero. The offline JSON report exposes the base metrics for further analysis.
+
+For GPT, use `--provider codex --model gpt-6.1-sol --live` with an available
+model and authenticated Codex CLI. GPT runs retain the call ceiling but have no
+dollar cap; the Codex CLI does not expose the required cost-budget control.

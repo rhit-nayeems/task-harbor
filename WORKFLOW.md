@@ -37,7 +37,7 @@ flowchart TD
     QAV -- FAIL/UNVERIFIED --> FC{Failures in current generation}
     FC -- 1 or 2 --> SAME[Resume SAME implementer session]
     SAME --> CKPT
-    FC -- 3 --> CLASS[Opus Harbor classifies\nINVESTIGATOR vs AUDITOR]
+    FC -- 3 --> CLASS[Task Harbor classifies\nINVESTIGATOR vs AUDITOR]
     CLASS --> DIAG[Fresh diagnostic agent\nevidence only]
     DIAG --> PACKET[Harness creates CLEAN RESTART PACKET\nno previous conversation/strategy]
     PACKET --> FRESH[Fresh implementer session\nreset failure counter]
