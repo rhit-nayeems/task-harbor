@@ -3,7 +3,7 @@
 ```mermaid
 flowchart TD
     START([IT Manager wakes]) --> ELIG[Compute eligible backlog items\nHard-check dependencies + acceptance criteria]
-    ELIG --> MSEL[Opus Harbor chooses next planning batch\npriority is guidance, engineering judgment retained]
+    ELIG --> MSEL[Deterministic scheduler selects eligible batch\noptional model-based selection]
     MSEL --> PCAP{Planner slots available?\nmax 4}
     PCAP -- Yes --> PLAN[Parallel fresh Opus planners\nClaude Code plan mode]
     PCAP -- No --> WAIT[Wait for completed planner]
@@ -16,7 +16,9 @@ flowchart TD
     READY --> WT[Create isolated task worktree + local branch]
     WT --> IMPL[Opus implementer\nwrite-capable]
     IMPL --> CKPT[Harness checkpoint commit]
-    CKPT --> QA[Fresh Opus QA\ndisposable worktree]
+    CKPT --> CHECK[Harness runs configured checks]
+    CHECK -- PASS --> QA[Fresh Opus QA\ndisposable worktree]
+    CHECK -- FAIL --> FC
     QA --> QAV{QA verdict}
 
     QAV -- PASS --> MERGE[Merge into local integration branch]
