@@ -1,7 +1,9 @@
-"""Read-only terminal dashboard. Never starts agents or changes run state."""
+"""Terminal dashboard with explicit project and run controls."""
 from __future__ import annotations
 
 import json
+import asyncio
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -14,6 +16,32 @@ from textual.widgets import Button, DataTable, Footer, Select, Static, ProgressB
 from .config import Config
 from .reporting import run_report
 from .help import GUIDE
+from .desktop_actions import launch_run
+
+
+class ConfirmRun(ModalScreen):
+    BINDINGS = [("escape", "cancel", "Cancel")]
+    DEFAULT_CSS = """
+    ConfirmRun { align: center middle; background: #000000 70%; }
+    #confirm-panel { width: 80%; height: auto; max-height: 90%; border: round #66e3c4; padding: 1 2; background: #111e2c; }
+    #confirm-text { height: auto; margin-bottom: 1; }
+    """
+
+    def __init__(self, description: str):
+        super().__init__()
+        self.description = description
+
+    def compose(self) -> ComposeResult:
+        with VerticalScroll(id="confirm-panel"):
+            yield Static(self.description, id="confirm-text", markup=False)
+            yield Button("Start agent work", id="confirm-start", variant="success")
+            yield Button("Cancel", id="cancel-start")
+
+    def action_cancel(self) -> None:
+        self.dismiss(False)
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        self.dismiss(event.button.id == "confirm-start")
 
 
 class HelpScreen(ModalScreen):
@@ -68,6 +96,9 @@ class HarborApp(App):
     Screen { background: #0b111b; color: #d9e4ef; }
     #brand { height: 5; padding: 1 2; background: #111e2c; color: #66e3c4; text-style: bold; }
     #workspace { height: 1; margin: 0 2; color: #8295aa; }
+    #actions { height: 3; margin: 1 2 0 2; }
+    #actions Button { min-width: 10; width: 1fr; margin-right: 1; }
+    #action-result { height: auto; max-height: 5; margin: 0 2; color: #f2c777; }
     #welcome { height: auto; padding: 1 2; margin: 1 2; border: round #66e3c4; background: #111e2c; }
     #completion { height: 1; margin: 0 2; }
     #run-picker { background: #111e2c; }
@@ -85,8 +116,10 @@ class HarborApp(App):
     DataTable > .datatable--header { background: #152638; color: #66e3c4; }
     Footer { background: #111e2c; }
     .compact #body { layout: vertical; }
+    .compact #brand { height: 3; padding: 0 2; }
+    .compact #summary { height: 4; }
     .compact #tasks { width: 1fr; height: 1fr; }
-    .compact #details-pane { width: 1fr; height: 8; margin-left: 0; }
+    .compact #details-pane { width: 1fr; height: 6; margin-left: 0; }
     .compact #events { height: 6; }
     """
 
@@ -97,10 +130,22 @@ class HarborApp(App):
         self.selected_run = run_id
         self.report: dict | None = None
         self.run_names: list[str] = []
+        self.launched_process = None
+        self.launch_log: Path | None = None
+        self.action_busy = False
+        self.resume_target: str | None = None
+        self.awaiting_new_run: set[str] | None = None
 
     def compose(self) -> ComposeResult:
         yield Static("▰ ▰ ▰  TASK HARBOR\n       Plan → Build → Verify → Review", id="brand")
         yield Static(str(self.repo), id="workspace", markup=False)
+        with Horizontal(id="actions"):
+            yield Button("Set up", id="setup")
+            yield Button("Validate", id="validate")
+            yield Button("New run", id="start", variant="success")
+            yield Button("Resume", id="resume")
+            yield Button("Stop", id="stop", variant="warning")
+        yield Static("", id="action-result", markup=False)
         yield Static("No runs yet.\n\n1  task-harbor init\n2  Edit BACKLOG.md and .manager/config.json\n3  task-harbor validate\n4  task-harbor manage (in another terminal)\n\nPress F1 for setup help. This dashboard will show the run when it starts.", id="welcome", markup=False)
         yield Select([], prompt="Choose a run", id="run-picker")
         with Horizontal(id="summary"):
@@ -128,6 +173,72 @@ class HarborApp(App):
     def action_help(self) -> None:
         self.push_screen(HelpScreen())
 
+    def action_message(self, message: str) -> None:
+        self.screen_stack[0].query_one("#action-result", Static).update(message)
+
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
+        action = event.button.id
+        if action not in {"setup", "validate", "start", "resume", "stop"}:
+            return
+        event.stop()
+        if self.action_busy:
+            return
+        if action in {"start", "resume"}:
+            if self.launched_process and self.launched_process.poll() is None:
+                self.action_message("A run launched here is still running. Stop it or wait before launching another.")
+                return
+            try:
+                path = self.repo / ".manager" / "config.json"
+                if not path.exists():
+                    raise ValueError("Use Set up first, then edit the backlog and configuration.")
+                raw = json.loads(path.read_text(encoding="utf-8"))
+                cfg = Config(**{k: v for k, v in raw.items() if k in Config.__dataclass_fields__})
+                self.resume_target = self.selected_run if action == "resume" else None
+                if action == "resume" and not self.resume_target:
+                    raise ValueError("Select a saved run to resume.")
+                verb = f"Resume {self.resume_target}" if self.resume_target else "Start a new run"
+                self.push_screen(ConfirmRun(
+                    f"{verb}\n\nProject: {self.repo}\nProvider: {cfg.provider}\nModel: {cfg.model}\n"
+                    f"Agent call limit: {cfg.max_agent_calls or 'Unlimited'}\n\n"
+                    "This starts model calls and changes code in isolated Git worktrees. "
+                    "Review your backlog and configuration first.\n\n"
+                    "Work continues if you close the dashboard. Stop waits for in-flight calls."
+                ), self.confirm_launch)
+            except (OSError, ValueError, TypeError) as exc:
+                self.action_message(str(exc))
+            return
+        command = "init" if action == "setup" else action
+        args = [sys.executable, "-m", "task_harbor", "--repo", str(self.repo), command]
+        if action == "stop":
+            if not self.selected_run:
+                self.action_message("Select a run to stop.")
+                return
+            args += ["--run-id", self.selected_run]
+        self.action_busy = True
+        self.action_message(f"Running {command}…")
+        try:
+            process = await asyncio.create_subprocess_exec(*args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
+            output, _ = await process.communicate()
+            self.action_message(output.decode("utf-8", errors="replace")[-1600:])
+            self.runs = runs_directory(self.repo)
+        except (OSError, ValueError) as exc:
+            self.action_message(str(exc))
+        finally:
+            self.action_busy = False
+            self.action_reload()
+
+    def confirm_launch(self, confirmed: bool) -> None:
+        if not confirmed:
+            return
+        try:
+            self.runs = runs_directory(self.repo)
+            self.launched_process, self.launch_log = launch_run(self.repo, self.runs, self.resume_target)
+            if not self.resume_target:
+                self.awaiting_new_run = set(self.run_names)
+            self.action_message(f"Agent work launched. Closing this window won't stop it.\nLaunch output: {self.launch_log}")
+        except (OSError, ValueError) as exc:
+            self.action_message(f"Could not launch: {exc}")
+
     def on_resize(self) -> None:
         self.screen.set_class(self.size.width < 95, "compact")
 
@@ -137,11 +248,31 @@ class HarborApp(App):
             self.action_reload()
 
     def action_reload(self) -> None:
-        if isinstance(self.screen, HelpScreen):
+        if isinstance(self.screen, ModalScreen):
             return
         try:
+            if self.launched_process and self.launched_process.poll() is not None:
+                code = self.launched_process.returncode
+                detail = ""
+                if code and self.launch_log and self.launch_log.exists():
+                    with self.launch_log.open("rb") as stream:
+                        stream.seek(0, 2)
+                        stream.seek(max(0, stream.tell() - 1000))
+                        detail = "\n" + stream.read().decode("utf-8", errors="replace")
+                self.action_message(f"Launched process finished (exit {code}). Output: {self.launch_log}{detail}")
+                self.launched_process = None
             names = sorted((p.parent.name for p in self.runs.glob("*/state.json")), reverse=True)
+            if self.awaiting_new_run is not None:
+                created = [name for name in names if name not in self.awaiting_new_run]
+                if created:
+                    self.selected_run = created[0]
+                    self.awaiting_new_run = None
+            self.query_one("#run-picker").display = bool(names)
+            for button in ("resume", "stop"):
+                self.query_one(f"#{button}", Button).disabled = not bool(names)
             if names != self.run_names:
+                if self.selected_run in self.run_names and self.selected_run not in names:
+                    self.selected_run = names[0] if names else None
                 self.run_names = names
                 picker = self.query_one(Select)
                 picker.set_options([(name, name) for name in names])
@@ -150,6 +281,14 @@ class HarborApp(App):
                 if self.selected_run in names:
                     picker.value = self.selected_run
             if not self.selected_run:
+                config_exists = (self.repo / ".manager" / "config.json").exists()
+                self.query_one("#welcome", Static).update(
+                    "No runs yet. A run is one execution of your backlog.\n\n"
+                    + ("1  Click Set up to create configuration and a sample backlog.\n" if not config_exists else "1  Project configured. Review your backlog and configuration.\n")
+                    + "2  Edit BACKLOG.md and .manager/config.json in your editor.\n"
+                    "3  Click Validate to check task requirements.\n4  Click New run to review settings and start.\n\n"
+                    f"Looking for runs in: {self.runs}\nPress F1 for help."
+                )
                 self.query_one("#welcome").display = True
                 for selector in ("#body", "#events", "#summary", "#completion"):
                     self.query_one(selector).display = False
@@ -158,13 +297,14 @@ class HarborApp(App):
             self.query_one("#welcome").display = False
             for selector in ("#body", "#events", "#summary", "#completion"):
                 self.query_one(selector).display = True
+            self.query_one("#events").display = self.size.height >= 36
             run_dir = self.runs / self.selected_run
             report = run_report(run_dir)
             events = event_tail(run_dir / "events.jsonl")
             updated = datetime.fromtimestamp((run_dir / "state.json").stat().st_mtime).strftime("%H:%M:%S")
             self.query_one("#events", Static).update(events)
             state = "Paused" if report["paused"] else "Complete" if report["completed"] == report["total"] else "Saved state"
-            self.query_one("#notice", Static).update(f'{state} · saved {updated} · refreshes every 2s · {report["stop_reason"] or "Monitoring only; run manage/resume in another terminal."}')
+            self.query_one("#notice", Static).update(f'{state} · saved {updated} · refreshes every 2s · {report["stop_reason"] or "Viewing saved progress. F1 for help."}')
             if report == self.report:
                 return
             table = self.query_one(DataTable)
@@ -199,7 +339,7 @@ class HarborApp(App):
             self.query_one(f"#{name}", Static).update("—")
         self.query_one("#details", Static).update(message)
         self.query_one("#events", Static).update("")
-        self.query_one("#notice", Static).update("Read-only dashboard · no model calls")
+        self.query_one("#notice", Static).update("Viewing is free of model calls. New run / Resume starts agent work after confirmation.")
 
     def on_data_table_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
         self.show_task(event.cursor_row)

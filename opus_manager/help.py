@@ -16,7 +16,10 @@ GUIDE = """TASK HARBOR — GETTING STARTED
    task-harbor
 
 MONITOR AND CONTROL
-The dashboard reads local files every two seconds. It does not start agents.
+The dashboard refreshes every two seconds. Viewing does not call models.
+Set up creates config/backlog; Validate checks them without model calls.
+New run and Resume show settings before you confirm agent work.
+Stop pauses after in-flight calls. Launch output: .manager/launch-logs/.
 Tab / Shift+Tab: change pane. Arrows: select task or run. F1: help. q: exit.
 Closing the dashboard does not stop a run. Use:
    task-harbor stop --run-id RUN_ID
@@ -26,7 +29,8 @@ Review results on manager/integration/RUN_ID. Nothing is automatically pushed.
 
 TROUBLESHOOTING
 Command not found? Use python -m task_harbor with the same arguments.
-No runs? Start manage in another terminal; ensure both use the same repository.
+No runs? Use Set up, edit the files, Validate, then New run.
+A run is one execution of a backlog; the picker only appears when runs exist.
 Different directory? Put --repo "path/to/app" BEFORE the command.
 Unknown cost? The provider did not report it; it is not a zero-cost call.
 Blocked task? Inspect task details and saved logs, fix the cause, then use

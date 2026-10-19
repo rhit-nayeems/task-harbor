@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.0 — Project and run controls
+
+- Add setup, validation, confirmed start/resume, and stop controls to the dashboard.
+- Hide the run picker until runs exist and explain what a run means.
+- Keep launch logs, show launch failures, and select newly launched runs automatically.
+
 ## 0.5.0 — Terminal dashboard
 
 - Include the dashboard in standard installs; add setup guide, F1 help, progress,

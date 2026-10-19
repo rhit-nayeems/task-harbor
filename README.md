@@ -78,9 +78,19 @@ calls, and reported costs. Select a run with the picker and use the arrow keys
 to inspect tasks. Tab changes panes, F1 opens help, `r` refreshes, and `q` exits. It also
 refreshes automatically every two seconds.
 
-Use `tui --run-id <id>` to open a specific run. Start or resume work in another
-terminal with the commands below. The dashboard only reads local files; it
-doesn't run agents or consume tokens. Unreported costs are shown as unknown.
+A run is one execution of your backlog. The run picker appears only after a run
+exists in the selected project.
+
+Use **Set up** to create the configuration and sample backlog, edit those files,
+then click **Validate**. **New run** and **Resume** show the provider, model, and
+call limit before you confirm agent work. **Stop** requests a pause after current
+calls finish. Closing the dashboard does not stop a launched run.
+
+Viewing progress does not consume tokens. Starting or resuming work does.
+Launch output is saved in `.manager/launch-logs/` (or your configured manager
+directory). Launch errors appear above the task list. Unreported costs are unknown.
+Use `tui --run-id <id>` to open a specific saved run. All commands below still work
+without the dashboard.
 
 ## Start a run
 
