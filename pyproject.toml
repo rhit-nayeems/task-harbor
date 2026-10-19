@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=75"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -9,6 +9,8 @@ description = "Claude and GPT backlog orchestrator for planning, implementation,
 requires-python = ">=3.11"
 authors = [{name = "rhit-nayeems"}]
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 dependencies = ["textual>=1,<2"]
 
 [project.optional-dependencies]
