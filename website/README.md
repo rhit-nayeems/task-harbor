@@ -20,11 +20,34 @@ context (localhost or HTTPS); a selection fallback is provided.
 node website/build.mjs
 ```
 
-Publish `website/dist/` on any static host. The Sites manifest stores the
-registered private preview identity; credentials are never stored here.
+Publish `website/dist/` on any static host.
 Google Fonts supplies Archivo, Inter Tight, JetBrains Mono, and Newsreader,
 with local font fallbacks.
 There are no analytics, cookies, account forms, or provider calls.
+
+## Deploy to Cloudflare
+
+Live site: https://task-harbor.sk-naimulnayeem.workers.dev
+
+The site uses Workers Static Assets. Only the four built files in `dist/`
+are published; no Worker code or paid services are required.
+
+With Node.js 22.18 or newer:
+
+```sh
+cd website
+npm ci
+npx cf auth login
+npm run deploy
+```
+
+Check the signed-in account with `npx cf auth whoami` before deploying.
+`cloudflare.config.ts` defines the site name; the CLI-generated
+`wrangler.config.ts` points its build tool at `dist/`.
+Credentials stay in the CLI's local account configuration.
+
+Deployments are manual. Pushing to GitHub does not update the live site
+until Git integration is configured in Cloudflare.
 
 ## Check changes
 
