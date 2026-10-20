@@ -178,6 +178,25 @@ button:focus-visible {
 .copy-feedback:not(:empty) {
   margin-top: 10px;
 }
+.install-next {
+  grid-column: 2;
+  min-width: 0;
+  margin-top: 22px;
+  max-width: 600px;
+  font-size: 15px;
+  line-height: 1.6;
+}
+.install-next p {
+  margin: 0;
+}
+.install-next p + p {
+  margin-top: 6px;
+  font-size: 13px;
+}
+.install-next code {
+  font: 13px var(--mono);
+  overflow-wrap: anywhere;
+}
 .paper {
   padding-top: 60px;
 }
