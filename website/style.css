@@ -37,7 +37,7 @@ button:focus-visible {
 }
 .shell {
   width: calc(100% - 80px);
-  max-width: 1280px;
+  max-width: 1040px;
   margin: auto;
 }
 .blue {
@@ -90,7 +90,7 @@ button:focus-visible {
   font-variation-settings: "wdth" 62;
   letter-spacing: -0.045em;
   line-height: 0.77;
-  font-size: clamp(96px, 19vw, 260px);
+  font-size: clamp(96px, 18vw, 212px);
   margin: 0;
 }
 .wordmark > span {
@@ -128,7 +128,7 @@ button:focus-visible {
 }
 .installation {
   display: grid;
-  grid-template-columns: 1fr 3fr;
+  grid-template-columns: 140px minmax(0, 1fr);
   gap: 0 32px;
   border-top: 2px solid var(--cream);
   padding: 20px 0 25px;
@@ -183,7 +183,7 @@ button:focus-visible {
 }
 .details-grid {
   display: grid;
-  grid-template-columns: 1fr 1.75fr 1.25fr;
+  grid-template-columns: 140px minmax(0, 1.3fr) minmax(0, 1fr);
   gap: 32px;
   padding-bottom: 52px;
 }
@@ -233,7 +233,7 @@ button:focus-visible {
 }
 .specifications {
   display: grid;
-  grid-template-columns: 1fr 3fr;
+  grid-template-columns: 140px minmax(0, 1fr);
   gap: 32px;
   border-top: 1px solid var(--blue);
   padding: 18px 0 44px;
@@ -276,7 +276,7 @@ button:focus-visible {
 }
 @media (min-width: 1600px) {
   .wordmark {
-    font-size: 260px;
+    font-size: 212px;
   }
 }
 @media (max-width: 900px) {
@@ -430,7 +430,7 @@ button:focus-visible {
 
 .contribute {
   display: grid;
-  grid-template-columns: 1fr 3fr;
+  grid-template-columns: 140px minmax(0, 1fr);
   gap: 32px;
   border-top: 1px solid var(--blue);
   padding: 28px 0 48px;
@@ -506,5 +506,71 @@ button:focus-visible {
   }
   .description p {
     font-size: 16px;
+  }
+}
+
+/* Keep the editorial columns readable inside the narrower page. */
+.hero {
+  padding-top: 36px;
+}
+.hero-bottom {
+  gap: 48px;
+  padding-block: 30px;
+}
+.specimen {
+  margin-left: 0;
+  padding-left: 22px;
+}
+.command {
+  gap: 18px;
+}
+.command code {
+  font-size: 13px;
+}
+@media (max-width: 900px) {
+  .contribute {
+    grid-template-columns: 130px minmax(0, 1fr);
+    gap: 20px;
+  }
+  .details-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .hero-bottom {
+    gap: 28px;
+  }
+}
+@media (max-width: 600px) {
+  .shell {
+    width: calc(100% - 40px);
+  }
+  .hero {
+    padding-top: 28px;
+  }
+  .wordmark {
+    font-size: 22vw;
+  }
+  .hero-bottom {
+    gap: 20px;
+    padding-block: 26px;
+  }
+  .details-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .command {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .command code {
+    flex-basis: 100%;
+    font-size: 12px;
+  }
+  .command button {
+    min-width: 88px;
+  }
+  .specimen {
+    padding-left: 16px;
+  }
+  .contribute {
+    display: block;
   }
 }
