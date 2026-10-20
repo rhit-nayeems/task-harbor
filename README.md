@@ -249,6 +249,7 @@ on Windows and Linux with Python 3.11 and 3.14. These tests do not establish liv
 - [Workflow](WORKFLOW.md)
 - [Evaluation](EVALUATION.md)
 - [Changelog](CHANGELOG.md)
+- [Technical status report](TECHNICAL_STATUS.md)
 
 ## Website
 
