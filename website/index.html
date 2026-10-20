@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#131513" />
+    <title>Task Harbor — A clear path from task to checked code</title>
+    <meta
+      name="description"
+      content="Run coding tasks with Claude or GPT. Task Harbor isolates changes and collects the checks and diffs for your review. Free, local, and MIT licensed."
+    />
+    <meta
+      property="og:title"
+      content="Task Harbor — A clear path from task to checked code"
+    />
+    <meta
+      property="og:description"
+      content="Your coding agent, with a workflow you can inspect. Local CLI orchestration for Claude and GPT."
+    />
+    <link rel="icon" href="mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="header wrap">
+      <a class="brand" href="#" aria-label="Task Harbor home"
+        ><img src="mark.svg" width="30" height="30" alt="" />task harbor<span
+          class="version"
+          >v0.7</span
+        ></a
+      >
+      <nav aria-label="Main navigation">
+        <a href="#workflow">How it works</a><a href="#evidence">The evidence</a
+        ><a
+          href="https://github.com/rhit-nayeems/task-harbor/blob/main/docs/VERIFICATION.md"
+          >Docs ↗</a
+        >
+      </nav>
+      <a class="nav-github" href="https://github.com/rhit-nayeems/task-harbor"
+        >GitHub ↗</a
+      >
+    </header>
+    <main id="main">
+      <section class="hero wrap" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <div class="eyebrow">
+            <span class="live-dot"></span> LOCAL FIRST. OPEN SOURCE.
+          </div>
+          <h1 id="hero-title">
+            Give your agents<br />a place to <span class="accent">land.</span>
+          </h1>
+          <p class="intro">
+            From a backlog to code you can review.<br />Task Harbor runs Claude
+            or GPT through planning, implementation, and checks—with the
+            evidence attached.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#install"
+              >Get started <span aria-hidden="true">↗</span></a
+            ><a class="text-link" href="#workflow"
+              >Walk through a task <span aria-hidden="true">↓</span></a
+            >
+          </div>
+          <div class="hero-notes">
+            <span><i>✓</i> Runs on your machine</span
+            ><span><i>✓</i> Bring your agent</span
+            ><span><i>✓</i> MIT licensed</span>
+          </div>
+        </div>
+        <div
+          class="hero-art"
+          aria-label="Illustration of tasks moving through checks into a reviewable branch"
+        >
+          <div class="orbit-label">WORK IN MOTION / 001</div>
+          <div class="orbit-grid"></div>
+          <div class="orbit orbit-one"></div>
+          <div class="orbit orbit-two"></div>
+          <div class="orbit orbit-three"></div>
+          <div class="harbor-symbol">
+            <svg viewBox="0 0 160 160" aria-hidden="true">
+              <path
+                d="M42 34v66c0 20 16 35 38 35s38-15 38-35V34M42 74h76M80 19v43"
+              />
+            </svg>
+          </div>
+          <span class="satellite sat-one"><b>01</b> task defined</span
+          ><span class="satellite sat-two"
+            ><span class="green-dot"></span> checks passed</span
+          ><span class="satellite sat-three"
+            ><span class="branch-icon">⑂</span> ready for review</span
+          >
+          <div class="orbit-coordinate">ISOLATE → VERIFY → REVIEW</div>
+        </div>
+      </section>
+      <section
+        class="terminal-section wrap"
+        aria-label="Interactive workflow demonstration"
+      >
+        <div class="section-caption">
+          <span
+            ><span class="orange-dot"></span> A SMALL TASK. THE WHOLE
+            PICTURE.</span
+          ><span>ILLUSTRATIVE DEMO · NO AGENT CALLS</span>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="window-dots"><i></i><i></i><i></i></div>
+            <span>task-harbor — search-app</span
+            ><span class="terminal-status">LOCAL WORKSPACE</span>
+          </div>
+          <div class="terminal-body">
+            <aside class="terminal-sidebar">
+              <div class="terminal-brand">⌁ task harbor</div>
+              <span class="mono muted">RUN / example-001</span>
+              <div
+                class="demo-steps"
+                role="tablist"
+                aria-label="Example workflow stages"
+              >
+                <button
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="demo-panel"
+                  id="step-plan"
+                  data-stage="plan"
+                >
+                  <span>01</span> Plan <b>✓</b></button
+                ><button
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="demo-panel"
+                  id="step-implement"
+                  data-stage="implement"
+                >
+                  <span>02</span> Implement <b>✓</b></button
+                ><button
+                  role="tab"
+                  aria-selected="true"
+                  aria-controls="demo-panel"
+                  id="step-verify"
+                  data-stage="verify"
+                >
+                  <span>03</span> Verify <b>✓</b></button
+                ><button
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="demo-panel"
+                  id="step-review"
+                  data-stage="review"
+                >
+                  <span>04</span> Review <b>↗</b>
+                </button>
+              </div>
+              <div class="sidebar-bottom">
+                <span class="green-dot"></span> Changes stay local
+              </div>
+            </aside>
+            <div
+              class="demo-content"
+              id="demo-panel"
+              role="tabpanel"
+              aria-labelledby="step-verify"
+              tabindex="0"
+            >
+              <div class="demo-heading">
+                <span class="ticket">SEARCH-01</span
+                ><span class="status-pill" id="demo-status">CHECKS PASSED</span>
+              </div>
+              <h2>Handle an empty search query</h2>
+              <p class="demo-description" id="demo-description">
+                Checks run at the exact checkpoint. Results stay attached to the
+                task.
+              </p>
+              <div class="console" id="demo-console"></div>
+              <div class="demo-footer">
+                <span id="demo-footnote"
+                  >Checkpoint <b>a41c9e2</b> · isolated worktree</span
+                ><span class="mono" id="demo-counter">03 / 04</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="compatibility">
+          <span>YOUR WORKFLOW. YOUR TOOLS.</span>
+          <div>
+            <b>Claude Code</b><span class="plus">+</span><b>Codex / GPT</b
+            ><span class="separator"></span><span>Python 3.11+</span
+            ><span>Git worktrees</span>
+          </div>
+        </div>
+      </section>
+      <section class="workflow wrap section" id="workflow">
+        <div class="section-heading">
+          <div>
+            <div class="eyebrow">01 / THE WORKFLOW</div>
+            <h2>More than a finished prompt.<br />A reviewable result.</h2>
+          </div>
+          <p>
+            Your agent writes the code. Harbor gives each task a defined scope,
+            an isolated workspace, and a record of what happened.
+          </p>
+        </div>
+        <div class="workflow-grid">
+          <article>
+            <div class="step-number">01 <span>↗</span></div>
+            <h3>Define the destination.</h3>
+            <p>
+              Write a Markdown backlog with acceptance criteria. Capture scope
+              and questions before implementation begins.
+            </p>
+            <div class="mini-code">
+              <span class="muted">## SEARCH-01</span><br /><span class="orange"
+                >- Acceptance criteria:</span
+              ><br />&nbsp; Empty query → empty results
+            </div>
+          </article>
+          <article>
+            <div class="step-number">02 <span>⑂</span></div>
+            <h3>Give the work its space.</h3>
+            <p>
+              Tasks run in separate Git worktrees. Planning, implementation, and
+              QA have distinct roles. Progress survives a restart.
+            </p>
+            <div class="branch-diagram">
+              <span>main</span><i></i
+              ><span class="orange">task / SEARCH-01</span>
+            </div>
+          </article>
+          <article>
+            <div class="step-number">03 <span>✓</span></div>
+            <h3>Check, then decide.</h3>
+            <p>
+              Run your tests before model QA. Inspect the evidence and
+              integration branch. You decide what reaches your original branch.
+            </p>
+            <div class="check-line">
+              <span class="green-dot"></span> checks → evidence → your review
+            </div>
+          </article>
+        </div>
+      </section>
+      <section class="evidence-section" id="evidence">
+        <div class="wrap evidence-layout">
+          <div class="evidence-copy">
+            <div class="eyebrow">02 / THE RECEIPTS</div>
+            <h2>“Done” deserves<br />a little <em>proof.</em></h2>
+            <p>
+              A confident answer is useful. The exact diff, a reproducible
+              check, and an honest list of unknowns are more useful when you’re
+              reviewing code.
+            </p>
+            <ul class="evidence-list">
+              <li>
+                <span>01</span>
+                <div>
+                  <b>Checks tied to a commit</b>
+                  <p>See what ran, where it ran, and whether it passed.</p>
+                </div>
+              </li>
+              <li>
+                <span>02</span>
+                <div>
+                  <b>The complete change</b>
+                  <p>Per-file diffs with scope and test-change flags.</p>
+                </div>
+              </li>
+              <li>
+                <span>03</span>
+                <div>
+                  <b>Your judgment stays separate</b>
+                  <p>
+                    Record acceptance and review time independently of model QA.
+                  </p>
+                </div>
+              </li>
+            </ul>
+            <a
+              class="text-link"
+              href="https://github.com/rhit-nayeems/task-harbor/blob/main/docs/VERIFICATION.md"
+              >Explore verification ↗</a
+            >
+          </div>
+          <div class="evidence-card">
+            <div class="report-title">
+              <span>↳ &nbsp; TASK EVIDENCE</span
+              ><span class="muted">EXAMPLE</span>
+            </div>
+            <div class="report-task">
+              <span class="ticket">SEARCH-01</span>
+              <h3>Small change.<br />Visible consequences.</h3>
+            </div>
+            <div class="report-meta">
+              <span>COMMIT <b>a41c9e2</b></span
+              ><span>FILES <b>2 changed</b></span>
+            </div>
+            <div class="diff-title">src/search.py <span>+2 −0</span></div>
+            <pre class="diff"><code><span>  def search(query):</span>
++     if not query.strip():
++         return []
+<span>      return index.lookup(query)</span></code></pre>
+            <div class="report-checks">
+              <div><span>Empty query returns []</span><b>PASS</b></div>
+              <div><span>Existing search tests</span><b>PASS</b></div>
+              <div><span>Human review</span><strong>Pending</strong></div>
+            </div>
+            <div class="report-bottom">
+              <span class="green-dot"></span> Evidence collected. Your call
+              next.
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="wrap section control-section">
+        <div class="section-heading">
+          <div>
+            <div class="eyebrow">03 / STAY IN CONTROL</div>
+            <h2>Ambitious agents.<br />Sensible boundaries.</h2>
+          </div>
+          <a
+            class="text-link"
+            href="https://github.com/rhit-nayeems/task-harbor/blob/main/docs/CONFIGURATION.md"
+            >Read the configuration guide ↗</a
+          >
+        </div>
+        <div class="control-grid">
+          <article>
+            <span class="control-icon">↳</span>
+            <h3>Ask before guessing.</h3>
+            <p>
+              Unanswered questions pause the task. Answer once, save the
+              decision, and resume.
+            </p>
+          </article>
+          <article>
+            <span class="control-icon">⊣</span>
+            <h3>Stop the loop.</h3>
+            <p>
+              Set call limits. Pause repeated failures when the code isn’t
+              changing.
+            </p>
+          </article>
+          <article>
+            <span class="control-icon">≋</span>
+            <h3>Measure the overhead.</h3>
+            <p>
+              Compare Harbor with a direct agent on your own tasks. Keep
+              failures and unknown costs in the results.
+            </p>
+          </article>
+        </div>
+        <div class="honesty-note">
+          <span>AN HONEST NOTE</span>
+          <p>
+            Orchestration can use more tokens. We haven’t demonstrated a
+            performance advantage in live benchmarks yet.
+            <a
+              href="https://github.com/rhit-nayeems/task-harbor/blob/main/EVALUATION.md"
+              >Here’s how to measure it. ↗</a
+            >
+          </p>
+        </div>
+      </section>
+      <section class="install-section wrap" id="install">
+        <div class="install-heading">
+          <div class="eyebrow">
+            <span class="live-dot"></span> READY WHEN YOU ARE
+          </div>
+          <h2>Your next task<br />starts here.</h2>
+          <p>
+            Free, MIT licensed, and built to run locally.<br />Agent usage is
+            billed by your provider.
+          </p>
+        </div>
+        <div class="install-panel">
+          <div
+            class="install-tabs"
+            role="tablist"
+            aria-label="Installation method"
+          >
+            <button
+              role="tab"
+              aria-selected="true"
+              id="pip-tab"
+              aria-controls="install-command"
+              data-install="pip"
+            >
+              pip</button
+            ><button
+              role="tab"
+              aria-selected="false"
+              id="pipx-tab"
+              aria-controls="install-command"
+              data-install="pipx"
+            >
+              pipx</button
+            ><span>PYTHON 3.11+</span>
+          </div>
+          <div
+            class="install-code"
+            role="tabpanel"
+            id="install-command"
+            aria-labelledby="pip-tab"
+          >
+            <code id="install-text"
+              >python -m pip install
+              "git+https://github.com/rhit-nayeems/task-harbor.git"</code
+            ><button id="copy-command" aria-label="Copy installation command">
+              Copy <span aria-hidden="true">⧉</span>
+            </button>
+          </div>
+          <p
+            class="copy-status"
+            id="copy-status"
+            role="status"
+            aria-live="polite"
+          >
+            Installs directly from GitHub. Not published to PyPI yet.
+          </p>
+          <ol class="quickstart">
+            <li>
+              <span>01</span>
+              <div>
+                Open your Git repository.<small
+                  >Have Claude Code or Codex installed and signed in.</small
+                >
+              </div>
+            </li>
+            <li>
+              <span>02</span>
+              <div>
+                <code>task-harbor init</code
+                ><small
+                  >Edit BACKLOG.md and choose your provider in
+                  .manager/config.json.</small
+                >
+              </div>
+            </li>
+            <li>
+              <span>03</span>
+              <div>
+                <code>task-harbor</code
+                ><small
+                  >Open the dashboard, validate, and start your first
+                  run.</small
+                >
+              </div>
+            </li>
+          </ol>
+          <a
+            class="text-link"
+            href="https://github.com/rhit-nayeems/task-harbor#start-a-run"
+            >Follow the full setup guide ↗</a
+          >
+        </div>
+      </section>
+      <section class="faq wrap">
+        <div class="eyebrow">A FEW THINGS TO KNOW</div>
+        <details>
+          <summary>
+            Does Task Harbor replace Claude Code or Codex?<span>+</span>
+          </summary>
+          <p>
+            No. It orchestrates their existing CLIs. You need one installed and
+            authenticated. Harbor adds planning, task state, verification, and
+            evidence around the agent.
+          </p>
+        </details>
+        <details>
+          <summary>Does my code stay on my machine?<span>+</span></summary>
+          <p>
+            Harbor stores worktrees and run records locally. Your chosen agent
+            can send repository context to its model provider under that
+            provider’s settings and terms. Harbor is not an offline model.
+          </p>
+        </details>
+        <details>
+          <summary>
+            Will it push or merge into my main branch?<span>+</span>
+          </summary>
+          <p>
+            Harbor integrates checked tasks into a separate local branch. It
+            does not automatically push changes or merge into your original
+            branch. Review the integration branch before accepting it.
+          </p>
+        </details>
+        <details>
+          <summary>
+            Can I use it on Windows, macOS, or Linux?<span>+</span>
+          </summary>
+          <p>
+            The package requires Python 3.11+, Git, and a supported agent CLI.
+            Automated tests run on Windows and Linux. macOS is not currently
+            part of the CI test matrix. See the setup guide for terminal PATH
+            troubleshooting.
+          </p>
+        </details>
+      </section>
+    </main>
+    <footer class="footer wrap">
+      <a class="brand" href="#"
+        ><img src="mark.svg" width="28" height="28" alt="" />task harbor</a
+      ><span
+        >Built by <a href="https://github.com/rhit-nayeems">rhit-nayeems</a>.
+        Open by design.</span
+      >
+      <div>
+        <a href="https://github.com/rhit-nayeems/task-harbor">Source ↗</a
+        ><a href="https://github.com/rhit-nayeems/task-harbor/issues"
+          >Feedback ↗</a
+        ><a href="https://github.com/rhit-nayeems/task-harbor/blob/main/LICENSE"
+          >MIT License ↗</a
+        >
+      </div>
+    </footer>
+  </body>
+</html>

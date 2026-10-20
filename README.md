@@ -250,6 +250,11 @@ on Windows and Linux with Python 3.11 and 3.14. These tests do not establish liv
 - [Evaluation](EVALUATION.md)
 - [Changelog](CHANGELOG.md)
 
+## Website
+
+The landing page lives in [website/](website/README.md). It uses static HTML, CSS,
+and JavaScript, with an interactive example workflow and installation guide.
+
 ## License
 
 Task Harbor is available under the [MIT License](LICENSE).
