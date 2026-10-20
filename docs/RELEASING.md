@@ -3,10 +3,11 @@
 The package and primary command stay `task-harbor`. The `harbor` package and
 command already belong to another agent framework; do not add a conflicting alias.
 
-## One-time PyPI account setup
+## Publisher configuration
 
-Sign in to PyPI, verify your email, and enable two-factor authentication.
-At https://pypi.org/manage/account/publishing/ add a pending GitHub publisher:
+Task Harbor is published on [PyPI](https://pypi.org/project/task-harbor/).
+Trusted Publishing is already configured with the following GitHub identity;
+normal releases do not need a new publisher or an API token.
 
 | Field | Value |
 | --- | --- |
@@ -16,8 +17,8 @@ At https://pypi.org/manage/account/publishing/ add a pending GitHub publisher:
 | Workflow filename | `publish.yml` |
 | Environment | `pypi` |
 
-No PyPI API token needs to be stored in GitHub. Registering a pending publisher
-does not guarantee that a package name is available until publishing succeeds.
+Manage this configuration in the project's PyPI publishing settings. Maintainers
+must keep their PyPI account email verified and two-factor authentication enabled.
 
 ## Validate before publishing
 
@@ -32,9 +33,20 @@ Inspect the `python-distributions` artifact from the successful run.
 3. Create a GitHub release with a tag exactly matching `v<package-version>`.
 4. Publish the release. The workflow rebuilds, validates, tests, and publishes
    through the `pypi` environment using Trusted Publishing.
-5. Confirm installation from PyPI in a fresh environment, then replace the
-   GitHub installation instructions and “not on PyPI” statements in the README
-   and website. Do not change them before publication succeeds.
+5. Confirm the new version appears on PyPI, then install it in a fresh virtual
+   environment from outside the source checkout. Replace `VERSION` below with
+   the released version:
+
+   ```sh
+   python -m pip install --index-url https://pypi.org/simple "task-harbor==VERSION"
+   task-harbor --version
+   task-harbor --help
+   python -m task_harbor runs --json
+   ```
+
+6. Check upgrading an existing installation with `python -m pip install --upgrade
+   task-harbor`. Keep the README and website installation instructions aligned
+   with the published package. These smoke checks do not call a model provider.
 
 Prereleases do not publish through this workflow. Published distribution files
 cannot be replaced with new contents under the same filename/version; release

@@ -11,6 +11,12 @@ It separates implemented behavior, observed validation, and proposed work.
 It is a point-in-time report, not a continuously updated dashboard or a security
 audit. Later commits may change the behavior described here.
 
+**Publication update (October 20, 2026):** Version `0.7.1` is now available on
+[PyPI](https://pypi.org/project/task-harbor/0.7.1/). Install with
+`python -m pip install task-harbor`. The distribution and release gaps below
+describe the original snapshot and are superseded by the publication addendum
+at the end of this report.
+
 ## 1. Current assessment
 
 Task Harbor is a working local orchestration tool for coding agents. It takes a
@@ -531,3 +537,25 @@ results above remain historical rather than being silently relabeled.
 
 Validation for this addendum: 108 tests passed locally on Windows, including
 six new offline-command tests. No real provider calls were used.
+
+## Addendum: PyPI publication (October 20, 2026)
+
+Release source: `eb73cbe` on `main`, tagged `v0.7.1`.
+
+- Versions `0.7.0` and `0.7.1` were published to PyPI. Version `0.7.1` corrects
+  the package description's installation instructions and documentation links.
+- `.github/workflows/publish.yml` builds and validates the distributions, tests
+  the installed wheel, and publishes GitHub releases using PyPI Trusted
+  Publishing. No stored PyPI API token is required. Manual workflow runs validate
+  only; ordinary pushes and prereleases do not publish packages.
+- A fresh Windows virtual environment installed `0.7.0` from PyPI and upgraded
+  successfully to `0.7.1`. The console version command and Python-module
+  saved-run listing worked outside the source checkout.
+- The README and deployed website now use PyPI installation instructions.
+  Contributor instructions retain editable source installation intentionally.
+- The primary command remains `task-harbor`; the package requires Python 3.11+.
+  Release maintenance instructions are in [docs/RELEASING.md](docs/RELEASING.md).
+
+Release workflow and website deployment both completed successfully. These
+checks establish packaging and offline CLI behavior, not authenticated provider
+compatibility or comparative model performance.
