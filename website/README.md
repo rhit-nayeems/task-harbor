@@ -46,8 +46,15 @@ Check the signed-in account with `npx cf auth whoami` before deploying.
 `wrangler.config.ts` points its build tool at `dist/`.
 Credentials stay in the CLI's local account configuration.
 
-Deployments are manual. Pushing to GitHub does not update the live site
-until Git integration is configured in Cloudflare.
+Changes under `website/` pushed to `main` deploy automatically through
+[GitHub Actions](https://github.com/rhit-nayeems/task-harbor/actions/workflows/website.yml).
+Pull requests check the build without deploying. The workflow also supports
+manual runs from the Actions page. Every deployment checks that the live files
+match the build.
+
+The workflow uses the repository secrets `CLOUDFLARE_API_TOKEN` and
+`CLOUDFLARE_ACCOUNT_ID`. The deployment token has Workers Scripts Write and
+Account Settings Read permissions for the hosting account.
 
 ## Check changes
 
