@@ -48,7 +48,13 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: |
           for file in index.html style.css app.js mark.svg; do
-            curl --fail --silent --show-error --retry 5 --retry-all-errors \
-              "https://task-harbor.sk-naimulnayeem.workers.dev/$file" -o "/tmp/$file"
+            for attempt in {1..6}; do
+              curl --location --fail --silent --show-error --retry 3 --retry-all-errors \
+                "https://task-harbor.sk-naimulnayeem.workers.dev/$file" -o "/tmp/$file"
+              if cmp --silent "dist/$file" "/tmp/$file"; then
+                break
+              fi
+              sleep 5
+            done
             cmp "dist/$file" "/tmp/$file"
           done
