@@ -30,7 +30,7 @@
       <div class="blue">
         <header class="shell masthead">
           <a class="small-brand" href="#main">TASK/HARBOR</a
-          ><span class="edition">OPEN SOURCE · MIT</span>
+          ><span class="edition">OPEN SOURCE</span>
           <nav aria-label="Main">
             <a href="https://github.com/rhit-nayeems/task-harbor">GitHub</a
             ><a
@@ -96,19 +96,29 @@
           </div>
           <figure class="specimen">
             <figcaption>
-              <span>Review output</span><span>Example</span>
+              <span>A task, end to end</span><span>Example</span>
             </figcaption>
-            <pre><code>$ task-harbor review --run-id example-001
-
-SEARCH-01
-Handle empty queries
-
-checkpoint: a41c9e2
-
-python -m pytest tests/test_search.py
-
-3 passed
-<span>human review: pending</span></code></pre>
+            <div class="example-step">
+              <h3>Your task</h3>
+              <p>“Make an empty search show a helpful message.”</p>
+            </div>
+            <div class="example-step">
+              <h3>Ready for your review</h3>
+              <dl class="example-result">
+                <div><dt>Task</dt><dd>Handle empty search queries</dd></div>
+                <div><dt>Checks</dt><dd>3 tests passed</dd></div>
+                <div><dt>Your review</dt><dd>Pending</dd></div>
+              </dl>
+            </div>
+            <div class="example-step">
+              <h3>Next: inspect the changes</h3>
+              <p>Read the diff and test the behavior before accepting the work.</p>
+              <details class="example-command">
+                <summary>Open the review in your terminal</summary>
+                <code>task-harbor review --run-id YOUR_RUN_ID</code>
+                <p>Replace YOUR_RUN_ID with the run ID printed when you start a run.</p>
+              </details>
+            </div>
           </figure>
         </div>
         <div class="shell specifications">
@@ -138,17 +148,6 @@ python -m pytest tests/test_search.py
               <dt>Usage</dt>
               <dd>Agent usage billed by your provider</dd>
             </div>
-            <div>
-              <dt>License</dt>
-              <dd>
-                <a
-                  class="underlined"
-                  href="https://github.com/rhit-nayeems/task-harbor/blob/main/LICENSE"
-                  >MIT</a
-                >
-                · rhit-nayeems
-              </dd>
-            </div>
           </dl>
         </div>
         <section
@@ -160,7 +159,7 @@ python -m pytest tests/test_search.py
           <div>
             <h3>Use it. Inspect it. Contribute.</h3>
             <p>
-              Task Harbor is MIT licensed. Bug reports, documentation fixes,
+              Bug reports, documentation fixes,
               tests, and code contributions are welcome. Open an issue to
               discuss a larger change before starting.
             </p>
@@ -187,7 +186,7 @@ python -m pytest tests/test_search.py
             href="https://github.com/rhit-nayeems/task-harbor/blob/main/EVALUATION.md"
             >Evaluation</a
           >
-          <span>MIT · rhit-nayeems</span>
+          <span><a href="https://github.com/rhit-nayeems/task-harbor/blob/main/LICENSE">MIT license</a> · rhit-nayeems</span>
         </footer>
       </section>
     </main>

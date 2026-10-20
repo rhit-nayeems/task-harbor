@@ -231,6 +231,52 @@ button:focus-visible {
 .specimen pre span {
   font-weight: 500;
 }
+.example-step + .example-step {
+  margin-top: 24px;
+}
+.example-step h3 {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0 0 8px;
+}
+.example-step p,
+.example-result {
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+}
+.example-result > div {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 6px;
+}
+.example-result dt {
+  opacity: 0.8;
+}
+.example-result dd {
+  margin: 0;
+}
+.example-command {
+  margin-top: 14px;
+  font-size: 14px;
+}
+.example-command summary {
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  line-height: 1.5;
+}
+.example-command code {
+  display: block;
+  font: 12px/1.7 var(--mono);
+  overflow-wrap: anywhere;
+  margin: 14px 0 8px;
+}
+.example-command p {
+  font-size: 13px;
+}
 .specifications {
   display: grid;
   grid-template-columns: 140px minmax(0, 1fr);
