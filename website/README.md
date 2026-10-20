@@ -1,7 +1,7 @@
 # Task Harbor website
 
 Static HTML, CSS, and JavaScript. No runtime dependencies or build framework.
-The interactive terminal is an illustrative demo, not a connection to an agent.
+The example review output is illustrative, not a connection to an agent.
 
 ## Preview
 
@@ -22,12 +22,13 @@ node website/build.mjs
 
 Publish `website/dist/` on any static host. The Sites manifest stores the
 registered private preview identity; credentials are never stored here.
-Google Fonts supplies DM Sans and IBM Plex Mono, with local font fallbacks.
+Google Fonts supplies Archivo, Inter Tight, JetBrains Mono, and Newsreader,
+with local font fallbacks.
 There are no analytics, cookies, account forms, or provider calls.
 
 ## Check changes
 
 Run `node --check website/app.js`, then check desktop and narrow mobile layouts.
-Exercise all four task stages, arrow-key navigation between tabs, both install
-methods, clipboard copying, FAQ expansion, and internal navigation. Confirm
+Check clipboard copying, its fallback, keyboard focus, contribution links,
+and internal navigation. Confirm
 that example content and product claims still match the CLI.
