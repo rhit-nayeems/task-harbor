@@ -50,6 +50,11 @@ Python fallback: python -m task_harbor
     sub.add_parser("init", help="Create .manager/config.json and a BACKLOG.md template if absent")
     sub.add_parser("doctor", help="Validate Git, backlog, configuration, and agent CLI connectivity")
     sub.add_parser("validate", help="Validate backlog structure and dependency graph without running agents")
+    check = sub.add_parser("check", help="Read-only readiness audit; no model calls or project commands")
+    check.add_argument("--json", action="store_true", help="Print machine-readable readiness results")
+    runs = sub.add_parser("runs", help="List saved run snapshots without calling agents")
+    runs.add_argument("--json", action="store_true", help="Print machine-readable run summaries")
+    runs.add_argument("--status", choices=["unfinished", "paused", "complete"], help="Filter saved run status")
 
     manage = sub.add_parser("manage", help="Start a new autonomous manager run")
     manage.add_argument("--backlog", type=Path, default=None, help="Backlog path (default: config backlog_file)")
@@ -219,6 +224,9 @@ def main(argv: list[str] | None = None) -> int:
             result = compare(args.manifest.resolve(), args.output.resolve(), live=args.live, repetitions=args.repetitions)
             print(json.dumps(result, indent=2))
             return 0
+        if args.command in {"check", "runs"}:
+            from .offline import run_offline
+            return run_offline(args, repo)
         cfg = load_config(repo)
         if args.command in {"preflight", "contract", "questions", "answer", "review", "feedback"}:
             from .operator_commands import run_operator_command

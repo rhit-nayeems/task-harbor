@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Add a read-only `check` command for setup, verification, and usage-limit gaps.
+- Add `runs` with status filters and JSON summaries, including corrupt-run diagnostics.
+- Both commands work without provider calls or execution of project recipes.
+
 ## 0.7.0
 
 - Add preflight recipes and baseline checks before model work.

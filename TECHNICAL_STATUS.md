@@ -508,3 +508,26 @@ demonstrated product-market fit.
 
 The next useful milestone is a documented set of real users completing real tasks,
 with independent outcome checks and measured review effort.
+
+## Addendum: offline operator tools (October 20, 2026)
+
+Added after the source snapshot at the top of this report:
+
+- `task-harbor check [--json]`: read-only readiness inspection of Git, author
+  configuration, agent executable availability, backlog dependencies, task
+  agreements, required environment variables, verification configuration, and
+  run-wide call limits. It does not execute setup/test commands, contact providers,
+  or create/migrate configuration. Errors return exit code 2; warnings are advisory.
+- `task-harbor runs [--status unfinished|paused|complete] [--json]`: saved-run
+  discovery with task counts, blocked counts, integration branches, and stop
+  reasons. Unreadable run files are reported separately and cause exit code 2,
+  while healthy runs remain visible. Status describes persisted state, not live
+  process activity.
+
+Implementation: `opus_manager/offline.py`; regression tests:
+`tests/test_offline.py`. Authentication remains untested by `check`; use `doctor`
+only when an actual provider test is desired. The earlier snapshot and test
+results above remain historical rather than being silently relabeled.
+
+Validation for this addendum: 108 tests passed locally on Windows, including
+six new offline-command tests. No real provider calls were used.

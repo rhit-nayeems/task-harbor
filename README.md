@@ -191,6 +191,19 @@ prints a run ID. Save that ID to check progress or resume later.
 
 ## CLI commands
 
+Before spending model usage, run `task-harbor check`. It checks Git, the backlog,
+configuration, agent executable availability, required environment, and whether
+verification and call limits are configured. It reads local files without
+creating configuration, running project commands, or testing provider
+authentication. Errors return exit code 2; warnings explain missing safeguards.
+Use `check --json` for structured results.
+
+Find saved run IDs with `task-harbor runs`, or filter with
+`task-harbor runs --status paused`. `runs --json` includes task counts, blocked
+counts, stop reasons, and integration branches. Unreadable runs are reported
+without hiding healthy ones. These are persisted snapshots: “unfinished” does
+not mean a process is currently running.
+
 All commands accept `--repo` before the command. Replace `RUN_ID` below with the
 ID printed by `manage`.
 
@@ -201,6 +214,8 @@ ID printed by `manage`.
 | `--version` | Show installed version |
 | `init` | Create the configuration and sample backlog |
 | `validate` | Check backlog format and dependencies without calling a model |
+| `check [--json]` | Audit local readiness without executing project commands or calling models |
+| `runs [--status paused] [--json]` | Find saved runs; status filters also accept `unfinished` and `complete` |
 | `doctor` | Validate the backlog and make a test call to the selected agent |
 | `manage` | Start a new run |
 | `status --run-id RUN_ID` | Show saved task status and usage |

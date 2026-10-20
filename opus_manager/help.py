@@ -9,6 +9,7 @@ GUIDE = """TASK HARBOR — GETTING STARTED
 4. Set verification_commands to your test/build commands. Set max_agent_calls
    to limit usage; by default calls are unlimited.
 5. Check and run:
+   task-harbor check        (read-only readiness; no model calls or project commands)
    task-harbor preflight    (suggests checks; no model calls)
    task-harbor preflight --run-checks
    task-harbor validate
@@ -18,6 +19,9 @@ GUIDE = """TASK HARBOR — GETTING STARTED
    task-harbor
 
 MONITOR AND CONTROL
+List saved runs with task-harbor runs (or runs --status paused).
+Use check --json and runs --json for machine-readable results.
+Saved run status is a snapshot, not proof that a process is running.
 The dashboard refreshes every two seconds. Viewing does not call models.
 Set up creates config/backlog; Validate checks them without model calls.
 New run and Resume show settings before you confirm agent work.
