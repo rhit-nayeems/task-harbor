@@ -13,8 +13,8 @@ Configure tests once, then inspect the exact commands, checkpoint, and full diff
 for each task. Task agreements capture scope and unanswered questions. A failed
 check stops approval; a missing environment pauses work before more model calls.
 
-- [Set up checks and task agreements](docs/VERIFICATION.md)
-- [Compare Harbor with a direct agent](EVALUATION.md)
+- [Set up checks and task agreements](https://github.com/rhit-nayeems/task-harbor/blob/main/docs/VERIFICATION.md)
+- [Compare Harbor with a direct agent](https://github.com/rhit-nayeems/task-harbor/blob/main/EVALUATION.md)
 
 ```sh
 task-harbor preflight
@@ -29,16 +29,15 @@ You need Python 3.11+, Git, and either Claude Code or Codex installed and signed
 The repository you want to work on must have at least one commit and a configured
 Git author.
 
-Install the Python package directly from this repository (no clone required):
+Install the Python package from PyPI:
 
 ```sh
-python -m pip install "git+https://github.com/rhit-nayeems/task-harbor.git"
+python -m pip install task-harbor
 task-harbor --version
 task-harbor guide
 ```
 
-The dashboard is included. This project is not published to PyPI yet; do not use
-`pip install task-harbor` expecting this repository's package.
+The dashboard is included. Releases are available on [PyPI](https://pypi.org/project/task-harbor/).
 
 <details>
 <summary>Isolated install, upgrades, and command-not-found fixes</summary>
@@ -46,7 +45,7 @@ The dashboard is included. This project is not published to PyPI yet; do not use
 With pipx installed, use an isolated application environment:
 
 ```sh
-pipx install "git+https://github.com/rhit-nayeems/task-harbor.git"
+pipx install task-harbor
 pipx ensurepath
 ```
 
@@ -57,7 +56,7 @@ on PATH. Use the same Python interpreter you installed with.
 Upgrade a pip installation:
 
 ```sh
-python -m pip install --upgrade "git+https://github.com/rhit-nayeems/task-harbor.git"
+python -m pip install --upgrade task-harbor
 ```
 
 For pipx, use `pipx upgrade task-harbor`. Uninstall with `python -m pip uninstall
@@ -65,18 +64,18 @@ task-harbor` or `pipx uninstall task-harbor`, respectively.
 
 </details>
 
-[First run](#start-a-run) · [Commands](#cli-commands) · [Configuration](docs/CONFIGURATION.md)
+[First run](#start-a-run) · [Commands](#cli-commands) · [Configuration](https://github.com/rhit-nayeems/task-harbor/blob/main/docs/CONFIGURATION.md)
 
 ## Terminal dashboard
 
-![Task dashboard with sample data](docs/terminal-dashboard.svg)
+![Task dashboard with sample data](https://raw.githubusercontent.com/rhit-nayeems/task-harbor/main/docs/terminal-dashboard.svg)
 
 <details>
 <summary>See first-run setup and built-in help</summary>
 
-![First-run screen](docs/terminal-welcome.svg)
-![Built-in help screen](docs/terminal-help.svg)
-![Task evidence screen with sample data](docs/terminal-evidence.svg)
+![First-run screen](https://raw.githubusercontent.com/rhit-nayeems/task-harbor/main/docs/terminal-welcome.svg)
+![Built-in help screen](https://raw.githubusercontent.com/rhit-nayeems/task-harbor/main/docs/terminal-help.svg)
+![Task evidence screen with sample data](https://raw.githubusercontent.com/rhit-nayeems/task-harbor/main/docs/terminal-evidence.svg)
 
 </details>
 
@@ -133,7 +132,7 @@ An existing backlog is kept. Replace the sample task with your own work:
 ```
 
 Use a different ID for each task. List dependency IDs separated by commas.
-See [BACKLOG.example.md](BACKLOG.example.md) for a longer example.
+See [BACKLOG.example.md](https://github.com/rhit-nayeems/task-harbor/blob/main/BACKLOG.example.md) for a longer example.
 
 ### Choose Claude or GPT
 
@@ -257,20 +256,20 @@ python -m pytest
 
 Tests use simulated agent responses and real temporary Git repositories. CI runs
 on Windows and Linux with Python 3.11 and 3.14. These tests do not establish live model quality or account compatibility; see
-[EVALUATION.md](EVALUATION.md) for opt-in live evaluations.
+[EVALUATION.md](https://github.com/rhit-nayeems/task-harbor/blob/main/EVALUATION.md) for opt-in live evaluations.
 
-- [Configuration and provider details](docs/CONFIGURATION.md)
-- [Architecture](ARCHITECTURE.md)
-- [Workflow](WORKFLOW.md)
-- [Evaluation](EVALUATION.md)
-- [Changelog](CHANGELOG.md)
-- [Technical status report](TECHNICAL_STATUS.md)
+- [Configuration and provider details](https://github.com/rhit-nayeems/task-harbor/blob/main/docs/CONFIGURATION.md)
+- [Architecture](https://github.com/rhit-nayeems/task-harbor/blob/main/ARCHITECTURE.md)
+- [Workflow](https://github.com/rhit-nayeems/task-harbor/blob/main/WORKFLOW.md)
+- [Evaluation](https://github.com/rhit-nayeems/task-harbor/blob/main/EVALUATION.md)
+- [Changelog](https://github.com/rhit-nayeems/task-harbor/blob/main/CHANGELOG.md)
+- [Technical status report](https://github.com/rhit-nayeems/task-harbor/blob/main/TECHNICAL_STATUS.md)
 
 ## Website
 
-The landing page lives in [website/](website/README.md). It uses static HTML, CSS,
+The landing page lives in [website/](https://github.com/rhit-nayeems/task-harbor/blob/main/website/README.md). It uses static HTML, CSS,
 and JavaScript, with an interactive example workflow and installation guide.
 
 ## License
 
-Task Harbor is available under the [MIT License](LICENSE).
+Task Harbor is available under the [MIT License](https://github.com/rhit-nayeems/task-harbor/blob/main/LICENSE).

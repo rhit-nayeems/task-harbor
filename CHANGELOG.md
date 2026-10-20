@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.7.1
+
+- Publish corrected PyPI installation instructions and absolute documentation links.
+
+## 0.7.0 additions
 
 - Add a read-only `check` command for setup, verification, and usage-limit gaps.
 - Add `runs` with status filters and JSON summaries, including corrupt-run diagnostics.
