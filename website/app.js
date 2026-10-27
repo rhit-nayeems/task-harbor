@@ -36,3 +36,42 @@ stageControls.addEventListener('click', (event) => {
   document.querySelector('#stage-title').textContent = stage.title;
   document.querySelector('#stage-description').textContent = stage.description;
 });
+
+const branchMap = document.querySelector('.branch-map');
+const trace = branchMap.querySelector('.trace');
+const pulse = branchMap.querySelector('.task-pulse');
+const motionToggle = document.querySelector('#motion-toggle');
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const pathLength = trace.getTotalLength();
+let elapsed = 0;
+let lastFrame = null;
+let frameId = null;
+let paused = false;
+function drawProgress(time) {
+  if (lastFrame !== null) elapsed += Math.min(time - lastFrame, 100);
+  lastFrame = time;
+  // Travel for five seconds, then hold the result for one second.
+  const progress = Math.min((elapsed % 6000) / 5000, 1);
+  const point = trace.getPointAtLength(pathLength * progress);
+  pulse.setAttribute('cx', point.x);
+  pulse.setAttribute('cy', point.y);
+  trace.style.strokeDashoffset = String(1 - progress);
+  frameId = requestAnimationFrame(drawProgress);
+}
+function syncMotion() {
+  cancelAnimationFrame(frameId);
+  lastFrame = null;
+  motionToggle.hidden = reducedMotion.matches;
+  if (reducedMotion.matches) {
+    branchMap.dataset.motion = 'static';
+    trace.style.strokeDashoffset = '0';
+  } else {
+    branchMap.dataset.motion = paused ? 'paused' : 'running';
+    motionToggle.textContent = paused ? 'Play animation' : 'Pause animation';
+    if (!paused && !document.hidden) frameId = requestAnimationFrame(drawProgress);
+  }
+}
+motionToggle.addEventListener('click', () => { paused = !paused; syncMotion(); });
+reducedMotion.addEventListener('change', syncMotion);
+document.addEventListener('visibilitychange', syncMotion);
+syncMotion();

@@ -44,16 +44,17 @@
             <span>TASK</span><span>HARBOR</span>
           </h1>
           <figure class="branch-map">
-            <figcaption>LOCAL GIT WORKFLOW</figcaption>
+            <figcaption><span>LOCAL GIT WORKFLOW</span><button id="motion-toggle" type="button" hidden>Pause animation</button></figcaption>
             <svg viewBox="0 0 480 260" role="img" aria-labelledby="branch-title branch-desc">
               <title id="branch-title">Separate work. One branch to review.</title>
               <desc id="branch-desc">The original branch stays separate. A task branches into a worktree, passes checks, and joins the integration branch for human review.</desc>
               <g class="map-lines" fill="none" stroke="currentColor" stroke-width="2">
                 <path class="original-line" d="M30 50H450"/>
                 <path d="M70 50C120 50 100 140 155 140H290C340 140 320 210 375 210H450"/>
-                <path class="trace" d="M70 50C120 50 100 140 155 140H290C340 140 320 210 375 210H450"/>
+                <path class="trace" pathLength="1" d="M70 50C120 50 100 140 155 140H290C340 140 320 210 375 210H450"/>
               </g>
               <g class="map-nodes" stroke="currentColor" stroke-width="2"><circle cx="70" cy="50" r="6"/><circle cx="160" cy="140" r="6"/><circle cx="275" cy="140" r="6"/><circle cx="380" cy="210" r="6"/></g>
+              <circle class="task-pulse" cx="70" cy="50" r="7" aria-hidden="true"/>
               <g fill="currentColor" class="map-labels"><text x="30" y="28">original branch</text><text x="134" y="174">worktree</text><text x="253" y="116">checks</text><text x="345" y="243">review</text></g>
             </svg>
             <p>Your original branch stays yours.</p>

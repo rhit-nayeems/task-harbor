@@ -651,8 +651,8 @@ button:focus-visible {
 .map-labels { font:13px var(--mono); }
 .original-line { opacity:.35; }
 .map-nodes { fill:var(--forest); }
-.trace { stroke:#c5d8a1; stroke-width:4; stroke-dasharray:600; stroke-dashoffset:600; animation:branch-trace 2s ease-out .3s forwards; }
-@keyframes branch-trace { to { stroke-dashoffset:0; } }
+.trace { stroke:#c5d8a1; stroke-width:4; stroke-dasharray:1; stroke-dashoffset:0; }
+
 .journey { padding-bottom:58px; }
 .journey-heading { display:grid; grid-template-columns:140px 1.2fr 1fr; gap:32px; align-items:start; margin-bottom:36px; }
 .journey-heading h2 { font:400 clamp(30px,3vw,40px)/1.13 'Newsreader',Georgia,serif; margin:0; letter-spacing:-.025em; }
@@ -675,3 +675,9 @@ button:focus-visible {
 @media(max-width:900px) { .hero-composition { gap:24px; } .hero-composition .wordmark { font-size:14vw; } .journey-heading { grid-template-columns:1fr 1fr; gap:20px; } .journey-heading .section-label { grid-column:1/-1; } .journey-body { grid-template-columns:190px minmax(0,1fr); } }
 @media(max-width:600px) { .hero-composition { grid-template-columns:1fr; gap:24px; padding-top:12px; } .hero-composition .wordmark { font-size:23vw; } .branch-map { padding-top:16px; } .branch-map svg { max-height:220px; } .journey-heading { grid-template-columns:1fr; } .journey-body { grid-template-columns:1fr; } .stage-controls { display:grid; grid-template-columns:1fr 1fr; border-right:0; border-bottom:1px solid #173f3540; padding:10px; gap:4px; } .stage-controls button { gap:12px; padding:14px 10px; font-size:15px; border:0; } .stage-detail { padding:20px; } .artifact-label { flex-wrap:wrap; gap:6px; } .stage-detail pre { font-size:12px; min-height:160px; } }
 @media(prefers-reduced-motion:reduce) { .trace { animation:none; stroke-dashoffset:0; } .stage-controls button { transition:none; } }
+
+.branch-map figcaption { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+#motion-toggle { background:transparent; color:inherit; border:1px solid #f1eedd60; padding:8px 10px; font:11px var(--mono); min-height:36px; }
+#motion-toggle:hover { background:#f1eedd15; }
+.task-pulse { fill:var(--ivory); stroke:#c5d8a1; stroke-width:9; stroke-opacity:.35; display:none; }
+.branch-map[data-motion=running] .task-pulse, .branch-map[data-motion=paused] .task-pulse { display:block; }
