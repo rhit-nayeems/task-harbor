@@ -639,3 +639,39 @@ button:focus-visible {
     display: block;
   }
 }
+
+/* Branch illustration and selectable workflow. */
+.hero-composition { display:grid; grid-template-columns:1.1fr 1fr; gap:50px; align-items:center; padding:28px 0 12px; }
+.hero-composition .wordmark { font-size:clamp(90px,12vw,148px); line-height:.87; }
+.hero-composition .wordmark > span:last-child { text-align:left; }
+.branch-map { margin:0; padding:24px 0 12px; background-image:radial-gradient(#f1eedd20 .8px,transparent .8px); background-size:14px 14px; }
+.branch-map figcaption { font:11px var(--mono); letter-spacing:.12em; }
+.branch-map svg { display:block; width:100%; overflow:visible; margin-top:18px; }
+.branch-map p { font:12px var(--mono); margin:8px 0 0; opacity:.8; }
+.map-labels { font:13px var(--mono); }
+.original-line { opacity:.35; }
+.map-nodes { fill:var(--forest); }
+.trace { stroke:#c5d8a1; stroke-width:4; stroke-dasharray:600; stroke-dashoffset:600; animation:branch-trace 2s ease-out .3s forwards; }
+@keyframes branch-trace { to { stroke-dashoffset:0; } }
+.journey { padding-bottom:58px; }
+.journey-heading { display:grid; grid-template-columns:140px 1.2fr 1fr; gap:32px; align-items:start; margin-bottom:36px; }
+.journey-heading h2 { font:400 clamp(30px,3vw,40px)/1.13 'Newsreader',Georgia,serif; margin:0; letter-spacing:-.025em; }
+.journey-heading h2 em { font-weight:400; }
+.journey-heading p { font-size:16px; line-height:1.7; margin:0; }
+.journey-body { display:grid; grid-template-columns:240px minmax(0,1fr); border:1px solid #173f3540; }
+.stage-controls { padding:18px; border-right:1px solid #173f3540; }
+.stage-controls[hidden] { display:none; }
+.stage-controls button { display:flex; gap:24px; width:100%; padding:22px 14px; border:0; border-bottom:1px solid #173f3525; background:transparent; text-align:left; color:var(--forest); font-size:17px; transition:background .18s,color .18s; }
+.stage-controls button span { font:12px var(--mono); align-self:center; }
+.stage-controls button[aria-pressed=true] { background:var(--forest); color:var(--ivory); }
+.stage-controls button:hover:not([aria-pressed=true]) { background:#173f3510; }
+.stage-detail { min-width:0; padding:30px; background:#fff3; }
+.journey-body:has(.stage-controls[hidden]) { grid-template-columns:1fr; }
+.artifact-label { display:flex; justify-content:space-between; gap:16px; font:10px/1.6 var(--mono); letter-spacing:.04em; padding-bottom:16px; border-bottom:1px solid #173f3530; }
+.stage-detail pre { min-height:145px; font:13px/1.8 var(--mono); white-space:pre-wrap; overflow-wrap:anywhere; margin:24px 0; }
+.stage-detail h3 { font-size:20px; margin:0 0 10px; font-weight:500; }
+.stage-detail p { font-size:15px; line-height:1.7; margin:0; max-width:540px; }
+.journey-footnote { max-width:720px; margin:20px 0 0 auto; font-size:13px; line-height:1.7; }
+@media(max-width:900px) { .hero-composition { gap:24px; } .hero-composition .wordmark { font-size:14vw; } .journey-heading { grid-template-columns:1fr 1fr; gap:20px; } .journey-heading .section-label { grid-column:1/-1; } .journey-body { grid-template-columns:190px minmax(0,1fr); } }
+@media(max-width:600px) { .hero-composition { grid-template-columns:1fr; gap:24px; padding-top:12px; } .hero-composition .wordmark { font-size:23vw; } .branch-map { padding-top:16px; } .branch-map svg { max-height:220px; } .journey-heading { grid-template-columns:1fr; } .journey-body { grid-template-columns:1fr; } .stage-controls { display:grid; grid-template-columns:1fr 1fr; border-right:0; border-bottom:1px solid #173f3540; padding:10px; gap:4px; } .stage-controls button { gap:12px; padding:14px 10px; font-size:15px; border:0; } .stage-detail { padding:20px; } .artifact-label { flex-wrap:wrap; gap:6px; } .stage-detail pre { font-size:12px; min-height:160px; } }
+@media(prefers-reduced-motion:reduce) { .trace { animation:none; stroke-dashoffset:0; } .stage-controls button { transition:none; } }

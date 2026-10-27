@@ -40,9 +40,24 @@
           </nav>
         </header>
         <section class="shell hero" aria-labelledby="brand">
-          <h1 class="wordmark" id="brand">
+          <div class="hero-composition"><h1 class="wordmark" id="brand">
             <span>TASK</span><span>HARBOR</span>
           </h1>
+          <figure class="branch-map">
+            <figcaption>LOCAL GIT WORKFLOW</figcaption>
+            <svg viewBox="0 0 480 260" role="img" aria-labelledby="branch-title branch-desc">
+              <title id="branch-title">Separate work. One branch to review.</title>
+              <desc id="branch-desc">The original branch stays separate. A task branches into a worktree, passes checks, and joins the integration branch for human review.</desc>
+              <g class="map-lines" fill="none" stroke="currentColor" stroke-width="2">
+                <path class="original-line" d="M30 50H450"/>
+                <path d="M70 50C120 50 100 140 155 140H290C340 140 320 210 375 210H450"/>
+                <path class="trace" d="M70 50C120 50 100 140 155 140H290C340 140 320 210 375 210H450"/>
+              </g>
+              <g class="map-nodes" stroke="currentColor" stroke-width="2"><circle cx="70" cy="50" r="6"/><circle cx="160" cy="140" r="6"/><circle cx="275" cy="140" r="6"/><circle cx="380" cy="210" r="6"/></g>
+              <g fill="currentColor" class="map-labels"><text x="30" y="28">original branch</text><text x="134" y="174">worktree</text><text x="253" y="116">checks</text><text x="345" y="243">review</text></g>
+            </svg>
+            <p>Your original branch stays yours.</p>
+          </figure></div>
           <div class="hero-bottom">
             <h2>Run coding tasks.<br />Review the evidence.</h2>
             <p>
@@ -74,58 +89,34 @@
           <div class="install-next">
             <p>Next, open a terminal in your project and run <code>task-harbor check</code>.</p>
             <p>Find setup gaps before starting. No model calls; no project commands executed.
-              <a class="underlined" href="https://github.com/rhit-nayeems/task-harbor#start-a-run">First-run guide</a>
+              <a class="underlined" href="https://github.com/rhit-nayeems/task-harbor#quick-start">First-run guide</a>
             </p>
           </div>
         </section>
       </div>
       <section class="paper">
-        <div class="shell details-grid">
-          <div class="section-label">The workflow</div>
-          <div class="description">
-            <h2>From a Markdown backlog<br />to a local integration branch.</h2>
-            <p>
-              Each task gets a separate Git worktree. Your configured tests run
-              before model QA. Review the full diff and check results before
-              accepting the work.
-            </p>
-            <p>
-              Task state is saved so you can stop and resume. Harbor doesn’t
-              automatically push or merge into your original branch.
-            </p>
-            <a
-              class="underlined"
-              href="https://github.com/rhit-nayeems/task-harbor/blob/main/docs/VERIFICATION.md"
-              >Read the verification guide</a
-            >
+        <section class="shell journey" aria-labelledby="journey-title">
+          <div class="journey-heading"><span class="section-label">01 / THE WORKFLOW</span><h2 id="journey-title">Follow the work.<br><em>Keep the evidence.</em></h2><p>From a task in your backlog to changes you can inspect. Select a step to see what happens.</p></div>
+          <div class="journey-body">
+            <div class="stage-controls" aria-label="Workflow steps" hidden>
+              <button type="button" data-stage="0" aria-pressed="true" aria-controls="stage-detail"><span>01</span> Backlog</button>
+              <button type="button" data-stage="1" aria-pressed="false" aria-controls="stage-detail"><span>02</span> Worktree</button>
+              <button type="button" data-stage="2" aria-pressed="false" aria-controls="stage-detail"><span>03</span> Checks</button>
+              <button type="button" data-stage="3" aria-pressed="false" aria-controls="stage-detail"><span>04</span> Review</button>
+            </div>
+            <div id="stage-detail" class="stage-detail" aria-live="polite" aria-atomic="true">
+              <div class="artifact-label"><span id="artifact-name">BACKLOG.md</span><span>ILLUSTRATIVE EXAMPLE</span></div>
+              <pre id="artifact-content">## SEARCH-01 — Handle empty queries
+
+Acceptance criteria:
+  Empty searches show a helpful message.
+  Existing search tests still pass.</pre>
+              <h3 id="stage-title">Define what done means.</h3>
+              <p id="stage-description">Write a task and its acceptance criteria. Harbor reads the backlog and plans the work.</p>
+            </div>
           </div>
-          <figure class="specimen">
-            <figcaption>
-              <span>A task, end to end</span><span>Example</span>
-            </figcaption>
-            <div class="example-step">
-              <h3>Your task</h3>
-              <p>“Make an empty search show a helpful message.”</p>
-            </div>
-            <div class="example-step">
-              <h3>Ready for your review</h3>
-              <dl class="example-result">
-                <div><dt>Task</dt><dd>Handle empty search queries</dd></div>
-                <div><dt>Checks</dt><dd>3 tests passed</dd></div>
-                <div><dt>Your review</dt><dd>Pending</dd></div>
-              </dl>
-            </div>
-            <div class="example-step">
-              <h3>Next: inspect the changes</h3>
-              <p>Read the diff and test the behavior before accepting the work.</p>
-              <details class="example-command">
-                <summary>Open the review in your terminal</summary>
-                <code>task-harbor review --run-id YOUR_RUN_ID</code>
-                <p>Replace YOUR_RUN_ID with the run ID printed when you start a run.</p>
-              </details>
-            </div>
-          </figure>
-        </div>
+          <p class="journey-footnote">Configured checks run before model QA. Passing work joins a local integration branch for your review. <a class="underlined" href="https://github.com/rhit-nayeems/task-harbor/blob/main/docs/VERIFICATION.md">How verification works</a></p>
+        </section>
         <div class="shell specifications">
           <h2 class="section-label">Specifications</h2>
           <dl>
