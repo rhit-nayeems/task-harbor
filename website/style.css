@@ -7,11 +7,11 @@ html {
 }
 body {
   margin: 0;
-  background: var(--cream);
+  background: var(--ivory);
   font-family: "Inter Tight", Arial, sans-serif;
-  color: var(--blue);
-  --blue: oklch(0.42 0.2 263);
-  --cream: oklch(0.95 0.035 88);
+  color: var(--forest);
+  --forest: #173F35;
+  --ivory: #F1EEDD;
   --mono: "JetBrains Mono", monospace;
 }
 a {
@@ -32,24 +32,24 @@ button:focus-visible {
   outline-offset: 6px;
 }
 ::selection {
-  background: #d2e05c;
-  color: #172554;
+  background: var(--forest);
+  color: var(--ivory);
 }
 .shell {
   width: calc(100% - 80px);
   max-width: 1040px;
   margin: auto;
 }
-.blue {
-  background: var(--blue);
-  color: var(--cream);
+.forest {
+  background: var(--forest);
+  color: var(--ivory);
 }
 .skip {
   position: absolute;
   left: 20px;
   top: -80px;
-  background: var(--cream);
-  color: var(--blue);
+  background: var(--ivory);
+  color: var(--forest);
   padding: 12px;
   z-index: 5;
 }
@@ -130,7 +130,7 @@ button:focus-visible {
   display: grid;
   grid-template-columns: 140px minmax(0, 1fr);
   gap: 0 32px;
-  border-top: 2px solid var(--cream);
+  border-top: 2px solid var(--ivory);
   padding: 20px 0 25px;
 }
 .installation h2,
@@ -154,16 +154,16 @@ button:focus-visible {
   flex: 1;
 }
 .command button {
-  border: 1px solid var(--cream);
-  background: var(--cream);
-  color: var(--blue);
+  border: 1px solid var(--ivory);
+  background: var(--ivory);
+  color: var(--forest);
   font: 13px var(--mono);
   padding: 13px 20px;
   min-width: 86px;
 }
 .command button:hover {
   background: transparent;
-  color: var(--cream);
+  color: var(--ivory);
 }
 .install-note {
   grid-column: 2;
@@ -228,7 +228,7 @@ button:focus-visible {
   font-size: 14px;
 }
 .specimen {
-  border-left: 1px solid var(--blue);
+  border-left: 1px solid var(--forest);
   padding-left: 24px;
   margin: 0 0 0 24px;
   min-width: 0;
@@ -300,7 +300,7 @@ button:focus-visible {
   display: grid;
   grid-template-columns: 140px minmax(0, 1fr);
   gap: 32px;
-  border-top: 1px solid var(--blue);
+  border-top: 1px solid var(--forest);
   padding: 18px 0 44px;
 }
 .specifications dl {
@@ -311,7 +311,7 @@ button:focus-visible {
   grid-template-columns: 1fr 2fr;
   gap: 24px;
   padding: 11px 0;
-  border-bottom: 1px solid #16389935;
+  border-bottom: 1px solid color-mix(in srgb, var(--forest) 20%, transparent);
   font-size: 15px;
 }
 .specifications dl > div:first-child {
@@ -324,7 +324,7 @@ button:focus-visible {
   margin: 0;
 }
 .footer {
-  border-top: 1px solid var(--blue);
+  border-top: 1px solid var(--forest);
   display: flex;
   justify-content: space-between;
   gap: 30px;
@@ -497,7 +497,7 @@ button:focus-visible {
   display: grid;
   grid-template-columns: 140px minmax(0, 1fr);
   gap: 32px;
-  border-top: 1px solid var(--blue);
+  border-top: 1px solid var(--forest);
   padding: 28px 0 48px;
 }
 .contribute h3 {
