@@ -5,10 +5,12 @@ on:
     branches: [main]
     paths:
       - "website/**"
+      - "design-lab/**"
       - ".github/workflows/website.yml"
   pull_request:
     paths:
       - "website/**"
+      - "design-lab/**"
       - ".github/workflows/website.yml"
   workflow_dispatch:
 
@@ -33,9 +35,11 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: website/package-lock.json
+          cache-dependency-path: |
+            website/package-lock.json
+            design-lab/package-lock.json
       - run: npm ci
-      - run: node --check app.js
+      - run: npm ci --prefix ../design-lab
       - run: npm run build
       - run: npx cf deploy --dry-run
       - name: Deploy to Cloudflare
@@ -47,14 +51,15 @@ jobs:
       - name: Check live website
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: |
-          for file in index.html style.css app.js mark.svg; do
+          while IFS= read -r file; do
+            mkdir -p "/tmp/harbor-live/$(dirname "$file")"
             for attempt in {1..6}; do
               curl --location --fail --silent --show-error --retry 3 --retry-all-errors \
-                "https://task-harbor.sk-naimulnayeem.workers.dev/$file" -o "/tmp/$file"
-              if cmp --silent "dist/$file" "/tmp/$file"; then
+                "https://task-harbor.sk-naimulnayeem.workers.dev/$file" -o "/tmp/harbor-live/$file"
+              if cmp --silent "dist/$file" "/tmp/harbor-live/$file"; then
                 break
               fi
               sleep 5
             done
-            cmp "dist/$file" "/tmp/$file"
-          done
+            cmp "dist/$file" "/tmp/harbor-live/$file"
+          done < <(cd dist && find . -type f -printf '%P\n')
