@@ -1,0 +1,174 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-forest: var(--forest);
+  --color-forest-deep: var(--forest-deep);
+  --color-forest-lit: var(--forest-lit);
+  --color-ivory: var(--ivory);
+  --color-ivory-dim: var(--ivory-dim);
+  --color-signal: var(--signal);
+  --color-mono-bg: var(--mono-bg);
+  --color-mono-surface: var(--mono-surface);
+  --color-mono-fg: var(--mono-fg);
+  --color-mono-muted: var(--mono-muted);
+  --color-mono-line: var(--mono-line);
+  --color-mono-paper: var(--mono-paper);
+  --color-mono-charcoal: var(--mono-charcoal);
+  --ease-calm: cubic-bezier(0.22, 0.7, 0.12, 1);
+  --font-display: "Archivo", "Archivo Narrow", system-ui, sans-serif;
+  --font-sans: "Archivo", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+:root {
+  --radius: 2px;
+  --forest: oklch(0.33 0.05 172);
+  --forest-deep: oklch(0.2 0.035 172);
+  --forest-lit: oklch(0.55 0.08 165);
+  --ivory: oklch(0.94 0.025 100);
+  --ivory-dim: oklch(0.94 0.025 100 / 0.62);
+  --signal: oklch(0.86 0.13 120);
+
+  /* Monochrome material palette (scoped use: /combined via .theme-mono) */
+  --mono-bg: #0b0c0e;
+  --mono-surface: #17191d;
+  --mono-fg: #f3f3f1;
+  --mono-muted: #a5a8ae;
+  --mono-line: #c6cbd2;
+  --mono-paper: #ecedea;
+  --mono-charcoal: #1f2125;
+
+  --background: var(--forest-deep);
+  --foreground: var(--ivory);
+  --card: oklch(0.24 0.04 172);
+  --card-foreground: var(--ivory);
+  --popover: var(--forest-deep);
+  --popover-foreground: var(--ivory);
+  --primary: var(--ivory);
+  --primary-foreground: var(--forest-deep);
+  --secondary: var(--forest);
+  --secondary-foreground: var(--ivory);
+  --muted: oklch(0.26 0.04 172);
+  --muted-foreground: var(--ivory-dim);
+  --accent: var(--signal);
+  --accent-foreground: var(--forest-deep);
+  --destructive: oklch(0.6 0.2 27);
+  --border: oklch(0.94 0.025 100 / 0.16);
+  --input: oklch(0.94 0.025 100 / 0.2);
+  --ring: var(--signal);
+}
+
+.theme-mono {
+  --background: var(--mono-bg);
+  --foreground: var(--mono-fg);
+  --card: var(--mono-surface);
+  --muted-foreground: var(--mono-muted);
+  --primary: var(--mono-fg);
+  --primary-foreground: var(--mono-bg);
+  --border: color-mix(in srgb, var(--mono-line) 18%, transparent);
+  --ring: var(--mono-line);
+}
+.theme-mono ::selection { background: var(--mono-line); color: var(--mono-bg); }
+.theme-mono-paper {
+  --background: var(--mono-paper);
+  --foreground: var(--mono-charcoal);
+  --muted-foreground: #5d6168;
+  --border: color-mix(in srgb, var(--mono-charcoal) 16%, transparent);
+  --ring: var(--mono-charcoal);
+}
+
+/* Ivory-ground variant used by concept C */
+.theme-paper {
+  --background: var(--ivory);
+  --foreground: var(--forest-deep);
+  --muted-foreground: oklch(0.2 0.035 172 / 0.62);
+  --border: oklch(0.2 0.035 172 / 0.18);
+  --primary: var(--forest-deep);
+  --primary-foreground: var(--ivory);
+  --card: oklch(0.91 0.03 100);
+}
+
+@layer base {
+  * { border-color: var(--color-border); }
+  html { scroll-behavior: smooth; }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--signal); color: var(--forest-deep); }
+}
+
+@utility display {
+  font-family: var(--font-display);
+  font-stretch: 62%;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 0.86;
+  text-transform: uppercase;
+}
+
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+@utility glow-text {
+  text-shadow: 0 0 40px color-mix(in oklab, var(--signal) 35%, transparent);
+}
+
+@keyframes rise {
+  from { transform: translateY(110%); }
+  to { transform: translateY(0); }
+}
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes scan {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(100vh); }
+}
+
+@utility rise-line {
+  display: block;
+  animation: rise 1.1s cubic-bezier(0.2, 0.8, 0.1, 1) both;
+}
+@utility caret {
+  animation: blink 1s steps(1) infinite;
+}
+
+.motion-paused *, .motion-paused *::before, .motion-paused *::after {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  html { scroll-behavior: auto; }
+}
+
