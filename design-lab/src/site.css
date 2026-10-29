@@ -78,16 +78,13 @@
  .review-layout{padding-block:40px}
  .site-root .universe-stage{height:486px}
 }
-/* A single team section with one role expanded at a time. */
-.site-team.team-compact{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:56px;align-items:start;padding-block:40px 24px}
-.team-intro h2{font:400 31px/1.12 'Archivo',sans-serif;letter-spacing:-.045em;margin:0 0 16px}
-.team-intro p{font-size:16px;line-height:1.75;color:#a5aebd;margin:0;max-width:290px}
-.team-accordion{border-top:1px solid var(--site-line)}
-.team-accordion details{border-bottom:1px solid var(--site-line)}
-.team-accordion summary{display:flex;justify-content:space-between;align-items:center;gap:24px;min-height:56px;padding:16px 0;list-style:none;cursor:pointer;font:400 18px/1.4 'Archivo',sans-serif;letter-spacing:-.02em}
-.team-accordion summary::-webkit-details-marker{display:none}
-.team-accordion summary span{font:20px/1 'JetBrains Mono',monospace;color:#a5aebd;transition:transform .27s}
-.team-accordion details[open] summary span{transform:rotate(45deg)}
-.team-accordion details[open] summary{color:#fff}
-.team-accordion p{font-size:16px;line-height:1.75;color:#a5aebd;margin:0 36px 20px 0;max-width:430px}
-@media(max-width:700px){.site-team.team-compact{grid-template-columns:1fr;gap:24px;padding-block:32px 20px}.team-intro h2{font-size:29px;margin-bottom:12px}.team-intro p{max-width:none}.team-accordion summary{min-height:56px}.team-accordion p{margin-right:24px}}
+/* Keep the team explanation together and every role visible. */
+.site-team.team-compact{display:block;padding-block:36px 24px}
+.team-intro{display:flex;align-items:baseline;justify-content:space-between;gap:32px;margin-bottom:22px}
+.team-intro h2{font:400 31px/1.12 'Archivo',sans-serif;letter-spacing:-.045em;margin:0}
+.team-intro p{font-size:16px;line-height:1.75;color:#a5aebd;margin:0;max-width:330px}
+.team-roster{margin:0;border-top:1px solid var(--site-line)}
+.team-roster>div{display:grid;grid-template-columns:190px minmax(0,1fr);gap:24px;padding:16px 0;border-bottom:1px solid var(--site-line);align-items:baseline}
+.team-roster dt{font:400 18px/1.5 'Archivo',sans-serif;letter-spacing:-.02em}
+.team-roster dd{font-size:16px;line-height:1.75;color:#a5aebd;margin:0}
+@media(max-width:700px){.site-team.team-compact{padding-block:28px 20px}.team-intro{display:block;margin-bottom:20px}.team-intro h2{font-size:29px;margin-bottom:12px}.team-intro p{max-width:none}.team-roster>div{grid-template-columns:1fr;gap:5px;padding-block:16px}.team-roster dt{font-size:18px}}

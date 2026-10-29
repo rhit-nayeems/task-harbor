@@ -13,9 +13,7 @@ const ROLES = [
 export function EngineeringTeam(){
  return <section className="site-team site-shell team-compact" id="team" aria-labelledby="team-title">
   <div className="team-intro"><h2 id="team-title">Your engineering team</h2><p>Four agent roles, powered by Claude Code or Codex.</p></div>
-  <div className="team-accordion">{ROLES.map(([title,body],i)=><details key={title} name="engineering-roles" open={i===0}>
-   <summary>{title}<span aria-hidden="true">+</span></summary><p>{body}</p>
-  </details>)}</div>
+  <dl className="team-roster">{ROLES.map(([title,body])=><div key={title}><dt>{title}</dt><dd>{body}</dd></div>)}</dl>
  </section>;
 }
 
