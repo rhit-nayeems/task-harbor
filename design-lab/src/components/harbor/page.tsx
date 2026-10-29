@@ -59,7 +59,7 @@ export function HarborField() {
     const yaw = -0.08 + vw.yaw, pitch = 0.3 + vw.pitch;
     const cY = Math.cos(yaw), sY = Math.sin(yaw), cP = Math.cos(pitch), sP = Math.sin(pitch);
     const CAM: HV = [0, 3.1, -2.5];
-    const f = Math.max(w * 0.62, h * 0.95);
+    const f = Math.max(w * 0.62, Math.min(h, window.innerHeight * 0.765) * 0.95);
     const ox = w * 0.5;
     const project = (p: HV) => {
       const x = p[0] - CAM[0], y = p[1] - CAM[1], z = p[2] - CAM[2];
@@ -92,9 +92,10 @@ export function HarborField() {
     const atten = (sx: number, sy: number) => {
       const u = sx / w, v = sy / h;
       const head = 1 - 0.45 * (1 - smooth(0.02, 0.07, v));
-      if (mobile) return head * (1 - 0.6 * smooth(0.26, 0.42, v) * (1 - smooth(0.9, 1.02, v)));
+      const team = 1 - 0.72 * smooth(0.55, 0.8, v);
+      if (mobile) return head * team * (1 - 0.6 * smooth(0.26, 0.42, v) * (1 - smooth(0.9, 1.02, v)));
       const dx = (u - 0.3) / 0.38, dy = (v - 0.68) / 0.46;
-      return head * (1 - 0.72 * Math.exp(-(dx * dx + dy * dy) * 1.2));
+      return head * team * (1 - 0.72 * Math.exp(-(dx * dx + dy * dy) * 1.2));
     };
     // ray-cast every glyph cell onto the sea → the surface fills the whole hero edge to edge
     const Oy = h * 0.08;
@@ -176,9 +177,10 @@ export function HarborField() {
 
 export function HarborPage({ children }: { children: ReactNode }) {
  return <div className="theme-mono site-root bg-mono-bg text-mono-fg">
-  <section className="site-hero" id="top" aria-labelledby="hero-title">
+  <div className="site-intro">
    <HarborField />
    <div className="hero-type-scrim" aria-hidden="true"/>
+  <section className="site-hero" id="top" aria-labelledby="hero-title">
    <SiteHeader/>
    <div className="site-shell hero-content">
     
@@ -190,6 +192,7 @@ export function HarborPage({ children }: { children: ReactNode }) {
    </div>
   </section>
   <EngineeringTeam/>
+  </div>
   {children}
   <ReviewSection/>
   <GettingStarted/>
