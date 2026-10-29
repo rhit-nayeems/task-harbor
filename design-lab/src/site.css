@@ -97,3 +97,11 @@
 .site-intro .team-roster{border-color:#c6cbd247}
 .site-intro .team-roster>div{border-color:#c6cbd247}
 .site-header nav{color:#c2cad5}
+/* Light glass surfaces on links, leaving the header itself transparent. */
+.site-header nav{gap:8px}
+.site-header nav>a{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 12px;border:1px solid #e2e8f019;border-radius:6px;background:linear-gradient(180deg,#ffffff0b,#ffffff02),#0b0c0e70;backdrop-filter:blur(8px) saturate(110%);-webkit-backdrop-filter:blur(8px) saturate(110%);box-shadow:inset 0 1px 0 #ffffff0b,0 2px 8px #00000012;color:#d7dde5;transition:background .27s,border-color .27s,box-shadow .27s}
+.site-header nav>a:hover{background:linear-gradient(180deg,#ffffff12,#ffffff05),#15191e85;border-color:#e2e8f033;box-shadow:inset 0 1px 0 #ffffff14,0 3px 10px #0000001a;color:#fff}
+.site-header nav>.nav-install{border-color:#e2e8f026;color:#f3f3f1}
+@media(max-width:700px){.site-header nav{gap:6px}.site-header nav>a{padding:8px 10px;font-size:14px}}
+@media(max-width:700px){.site-header nav>a{padding-inline:8px}}
+@media(max-width:360px){.site-header nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
