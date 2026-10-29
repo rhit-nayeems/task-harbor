@@ -41,3 +41,40 @@
  .contribution-section{padding-block:30px 38px}
 }
 @media(max-width:700px){.site-header nav{order:initial;flex-wrap:wrap;justify-content:flex-start;gap:8px 20px}.site-header{gap:14px}.hero-brand{font-size:clamp(76px,20vw,112px)}.hero-content{padding-block:32px}.site-hero{min-height:85svh}}
+/* A further 10% reduction in desktop composition, without shrinking body copy. */
+@media(min-width:701px){
+ .site-shell{max-width:900px}
+ .site-hero{min-height:67.5svh}
+ .hero-content{padding-block:34px 29px}
+ .hero-brand{font-size:clamp(76px,8.1vw,115px);margin:14px 0 22px}
+ .hero-content h1{font-size:clamp(26px,2.25vw,31px)}
+ .site-header{padding-block:14px}
+ .site-team{padding-block:47px 27px}
+ .site-section-intro{gap:47px}
+ .site-section-intro h2{font-size:31px}
+ .team-roles{margin-top:27px}
+ .team-roles article{padding-block:21px}
+ .site-root .workflow-lab{padding:30px max(32px,calc((100vw - 900px)/2)) 22px}
+ .site-root .wf-heading{margin:14px 0 24px}
+ .site-root .wf-heading h2{font-size:40px}
+ .site-root .universe-stage{height:315px}
+ .site-root .universe-task{width:175px;gap:9px}
+ .site-root .universe-task-label{max-width:140px}
+ .site-root .universe-evidence>div{padding:16px}
+ .review-layout{gap:54px;padding-block:47px}
+ .review-layout h2{font-size:29px}
+ .setup-section{padding-block:51px}
+ .setup-steps{margin-top:29px}
+ .setup-steps>li{grid-template-columns:108px 1fr;gap:24px;padding-block:21px}
+ .faq-section{padding-bottom:47px}
+ .contribution-section{padding-block:27px 34px}
+}
+@media(max-width:700px){
+ .hero-brand{font-size:clamp(68px,18vw,101px)}
+ .hero-content{padding-block:29px}
+ .site-hero{min-height:76.5svh}
+ .site-team{padding-block:40px 23px}
+ .setup-section{padding-block:40px}
+ .review-layout{padding-block:40px}
+ .site-root .universe-stage{height:486px}
+}
