@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { MOTION_SPEED, useMotion } from './components/harbor/motion';
+import { KanbanWorkflow } from './kanban';
 import { WTASKS } from './components/harbor/workflow';
 const STAGES=['Backlog','Worktrees','Checks & QA','Review'];
 const CAPTIONS=['Four tasks, one Markdown backlog. T-104 depends on T-101.','Implementation runs one task at a time. Each task gets its own worktree and checkpoint.','Configured checks run before model QA. T-103 fails test_dst and stays held for repair.','Three tasks reach the local integration branch; one is held for repair.'];
@@ -15,6 +16,9 @@ function usePlayback(){
  return {stage,playing,section,reduced,choose:(s:number)=>{setPlaying(false);setStage(s);},toggle:()=>{if(stage===3)setStage(0);setPlaying(!playing);}};
 }
 export function WorkflowLab({variant}:{variant:string}){
+ return variant==='constellation'?<KanbanWorkflow/>:<ConceptWorkflow variant={variant}/>;
+}
+function ConceptWorkflow({variant}:{variant:string}){
  const mode=MODES.find(m=>m[0]===variant)??MODES[0],{stage,playing,section,choose,toggle,reduced}=usePlayback(),{paused}=useMotion();
  return <section ref={section} id="workflow" className={`workflow-lab ${paused||reduced?'still':''}`} aria-labelledby="workflow-title"><div className="wf-top">{(variant!=='constellation'||new URLSearchParams(window.location.search).has('concepts'))&&<nav aria-label="Compare workflow designs">{MODES.map(m=><a key={m[0]} href={'/'+m[0]+'#workflow'} aria-current={mode[0]===m[0]?'page':undefined}>{m[1]}</a>)}</nav>}</div><div className="wf-heading"><h2 id="workflow-title">{mode[2]}</h2></div><div className="wf-controls"><nav aria-label="Run stages">{STAGES.map((s,i)=><button key={s} onClick={()=>choose(i)} aria-pressed={stage===i}><span>0{i+1}</span>{s}</button>)}</nav><button className="play-sequence" disabled={reduced} onClick={toggle}>{reduced?'Manual stages':playing?'Pause sequence':stage===3?'Replay sequence':'Play sequence'}</button></div><p className="wf-caption" aria-live="polite">{CAPTIONS[stage]}</p>{mode[0]==='git-map'?<GitMap stage={stage}/>:mode[0]==='terminal'?<Terminal stage={stage}/>:<Constellation stage={stage}/>}<div className="wf-bottom"><span>Example run</span><span>Local integration only. Your original branch stays unchanged.</span></div></section>;
 }
