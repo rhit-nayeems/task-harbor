@@ -15,7 +15,9 @@ npm run dev
 The production build in `website/build.mjs` compiles this source and copies the
 result to `website/dist/`. Changes here pushed to main deploy automatically.
 
-The workflow uses illustrative tasks. No model calls are made. Previous/Next and task selection stop automatic playback; replay runs the sequence again. Reduced motion disables automatic playback. Motion runs at 75% of the original speed.
+The workflow is an automatic, looping Kanban illustration. No model calls are
+made. It pauses offscreen or in a hidden tab. Reduced motion shows the final
+run state without animation. There are no playback or task-selection controls.
 
 Earlier concepts remain at `/git-map#workflow`, `/terminal#workflow`, and
 `/combined`. Add `?concepts` to the root URL to show the comparison controls.
