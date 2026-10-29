@@ -2,8 +2,13 @@ import { useState } from 'react';
 import { GITHUB, ISSUES, PYPI, LICENSE, InstallCommand, copyText } from './components/harbor/shared';
 
 export function SiteHeader(){
- return <header className="site-header site-shell"><a className="site-brand" href="#top" aria-label="Task Harbor home">TASK/HARBOR</a><nav aria-label="Main navigation"><a href="#team">The team</a><a href="#workflow">Workflow</a><a href={GITHUB+'/blob/main/README.md'}>Docs</a><a href="#install" className="nav-install">Get started ↗</a></nav></header>;
+ return <header className="site-header site-shell"><nav aria-label="Main navigation">
+  <a href="#team">The team</a><a href="#workflow">Workflow</a>
+  <a className="site-brand nav-brand" href="#top" aria-label="Task Harbor home">TASK/HARBOR</a>
+  <a href={GITHUB+'/blob/main/README.md'}>Docs</a><a href="#install" className="nav-install">Get started</a>
+ </nav></header>;
 }
+
 const ROLES = [
  ['Planning', 'Turn backlog tasks into implementation plans.'],
  ['Implementation', 'Work through each task in its own Git worktree, one task at a time.'],
