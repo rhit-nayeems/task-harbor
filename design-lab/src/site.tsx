@@ -4,13 +4,20 @@ import { GITHUB, ISSUES, PYPI, LICENSE, InstallCommand, copyText } from './compo
 export function SiteHeader(){
  return <header className="site-header site-shell"><a className="site-brand" href="#top" aria-label="Task Harbor home">TASK/HARBOR</a><nav aria-label="Main navigation"><a href="#team">The team</a><a href="#workflow">Workflow</a><a href={GITHUB+'/blob/main/README.md'}>Docs</a><a href="#install" className="nav-install">Get started ↗</a></nav></header>;
 }
-const ROLES=[
- ['01','Planning','Turn backlog tasks into implementation plans.','Plan before changing code.'],
- ['02','Implementation','Work through each task in its own Git worktree.','Keep changes separate.'],
- ['03','Quality assurance','Run configured checks, then model QA against the task.','Keep the results.'],
- ['04','Code review','Review accumulated changes and address findings.','Bring the evidence to you.']
+const ROLES = [
+ ['Planning', 'Turn backlog tasks into implementation plans.'],
+ ['Implementation', 'Work through each task in its own Git worktree, one task at a time.'],
+ ['Quality assurance', 'Run configured checks, then model QA against the task.'],
+ ['Code review', 'Review accumulated changes and address findings.'],
 ];
-export function EngineeringTeam(){return <section className="site-team site-shell" id="team" aria-labelledby="team-title"><div className="site-section-intro"><h2 id="team-title">Your engineering team</h2><p>Agents handle four roles using Claude Code or Codex. Implementation runs one task at a time, in separate Git worktrees.</p></div><div className="team-roles">{ROLES.map(([n,title,body,note])=><article key={title}><h3>{title}</h3><p>{body}</p></article>)}</div></section>;}
+export function EngineeringTeam(){
+ return <section className="site-team site-shell team-compact" id="team" aria-labelledby="team-title">
+  <div className="team-intro"><h2 id="team-title">Your engineering team</h2><p>Four agent roles, powered by Claude Code or Codex.</p></div>
+  <div className="team-accordion">{ROLES.map(([title,body],i)=><details key={title} name="engineering-roles" open={i===0}>
+   <summary>{title}<span aria-hidden="true">+</span></summary><p>{body}</p>
+  </details>)}</div>
+ </section>;
+}
 
 export function ReviewSection(){return <section className="review-section"><div className="site-shell review-layout"><div><h2>Review before you merge</h2><p>Changes collect on a local integration branch. Inspect the diff, test the behavior, and accept the work when you’re ready.</p><a href={GITHUB+'/blob/main/docs/VERIFICATION.md'} className="text-link">Read the verification guide ↗</a></div><dl className="review-facts"><div><dt>Isolated work</dt><dd>Each task gets a separate Git worktree.</dd></div><div><dt>Visible checks</dt><dd>Your configured commands run before model QA.</dd></div><div><dt>Saved state</dt><dd>Pause the run and resume from its saved state.</dd></div><div><dt>Human review</dt><dd>No automatic push or merge into your original branch.</dd></div></dl></div></section>;}
 
