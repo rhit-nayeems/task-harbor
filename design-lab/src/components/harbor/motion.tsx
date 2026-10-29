@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 
+export const MOTION_SPEED = 0.75;
+
 type Motion = { paused: boolean; reduced: boolean; setPaused: (p: boolean) => void };
 const Ctx = createContext<Motion>({ paused: false, reduced: false, setPaused: () => {} });
 
@@ -81,7 +83,7 @@ export function useCanvasLoop(
       if (!running()) { raf = 0; return; }
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      tRef.current += dt;
+      tRef.current += dt * MOTION_SPEED;
       drawRef.current(ctx, w, h, tRef.current);
       raf = requestAnimationFrame(loop);
     };

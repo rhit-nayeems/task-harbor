@@ -16,8 +16,7 @@ The production build in `website/build.mjs` compiles this source and copies the
 result to `website/dist/`. Changes here pushed to main deploy automatically.
 
 The workflow uses illustrative tasks. No model calls are made. Stage buttons
-stop automatic playback; replay runs the sequence again. The header's motion
-control pauses page motion. Reduced motion disables automatic playback.
+stop automatic playback; replay runs the sequence again. Reduced motion disables automatic playback. Motion runs at 75% of the original speed.
 
 Earlier concepts remain at `/git-map#workflow`, `/terminal#workflow`, and
 `/combined`. Add `?concepts` to the root URL to show the comparison controls.

@@ -1,6 +1,6 @@
 import { SiteHeader, EngineeringTeam, ReviewSection, GettingStarted, SiteClosing } from '../../site';
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { useCanvasLoop, useMotion, useReveal, useStage } from "@/components/harbor/motion";
+import { MOTION_SPEED, useCanvasLoop, useMotion, useReveal, useStage } from "@/components/harbor/motion";
 import { GITHUB, INSTALL, ISSUES, InstallCommand, LICENSE, PULLS, PYPI, REQUIREMENTS } from "@/components/harbor/shared";
 
 /**
@@ -43,8 +43,8 @@ export function HarborField() {
     const mobile = w < 768;
     const vw = view.current;
     if (!still.current) {
-      vw.yaw += (clamp(pointer.current.tx, -1, 1) * 0.03 - vw.yaw) * 0.03;
-      vw.pitch += (clamp(pointer.current.ty, -1, 1) * 0.015 - vw.pitch) * 0.03;
+      vw.yaw += (clamp(pointer.current.tx, -1, 1) * 0.03 - vw.yaw) * 0.03 * MOTION_SPEED;
+      vw.pitch += (clamp(pointer.current.ty, -1, 1) * 0.015 - vw.pitch) * 0.03 * MOTION_SPEED;
     }
     const leave = clamp(window.scrollY / (h * 0.9)); // swell relaxes into lanes as the hero scrolls away
     const cell = mobile ? 9 : w > 1700 ? 12 : 11;

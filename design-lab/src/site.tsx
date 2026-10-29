@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import { useMotion } from './components/harbor/motion';
 import { GITHUB, ISSUES, PYPI, LICENSE, InstallCommand, copyText } from './components/harbor/shared';
 
 export function SiteHeader(){
- const {paused,reduced,setPaused}=useMotion();
- return <header className="site-header site-shell"><a className="site-brand" href="#top" aria-label="Task Harbor home">TASK/HARBOR</a><nav aria-label="Main navigation"><a href="#team">The team</a><a href="#workflow">Workflow</a><a href={GITHUB+'/blob/main/README.md'}>Docs</a><a href="#install" className="nav-install">Get started ↗</a></nav><button className="motion-control" disabled={reduced} onClick={()=>setPaused(!paused)} aria-pressed={paused}>{reduced?'Motion reduced':paused?'Play motion':'Pause motion'}</button></header>;
+ return <header className="site-header site-shell"><a className="site-brand" href="#top" aria-label="Task Harbor home">TASK/HARBOR</a><nav aria-label="Main navigation"><a href="#team">The team</a><a href="#workflow">Workflow</a><a href={GITHUB+'/blob/main/README.md'}>Docs</a><a href="#install" className="nav-install">Get started ↗</a></nav></header>;
 }
 const ROLES=[
  ['01','Planning','Turn backlog tasks into implementation plans.','Plan before changing code.'],
