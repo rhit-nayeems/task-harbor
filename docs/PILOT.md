@@ -6,6 +6,10 @@ for these teams. Watch where users struggle and revise it.
 
 ## Pilot materials
 
+Use the [recruitment plan](PILOT_RECRUITMENT.md) to find and qualify participants.
+It includes sourced research candidates, channel restrictions, and an invitation
+draft. No outreach has been sent and no pilot results are claimed.
+
 Copy the [worksheets](../evaluations/pilot-templates) into a private folder:
 
 - `interviews.md`: prompts about recent work and an observed first session.
