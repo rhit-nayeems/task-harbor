@@ -27,6 +27,10 @@ def build_parser() -> argparse.ArgumentParser:
         description="Run a coding backlog with Claude or GPT. With no command, open the dashboard.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""Quick start (inside your Git repository):
+  task-harbor demo           Try a scripted example without a provider
+  task-harbor setup          Guided setup: provider, checks, and call limit
+
+Manual setup:
   task-harbor init           Create config and sample backlog
   # Edit BACKLOG.md and .manager/config.json
   task-harbor validate       Check tasks without model calls
@@ -39,11 +43,18 @@ Dashboard keys: F1 help, Tab next pane, arrows select, r refresh, q quit.
 Python fallback: python -m task_harbor
 """,
     )
-    p.add_argument("--version", action="version", version="%(prog)s 0.7.1")
+    p.add_argument("--version", action="version", version="%(prog)s 0.8.0")
     p.add_argument("--repo", type=_repo, default=Path.cwd(), help="Target Git repository (default: current directory)")
     sub = p.add_subparsers(dest="command")
     p.set_defaults(command="tui", run_id=None)
     sub.add_parser("guide", help="Show setup, usage, and troubleshooting instructions")
+    demo = sub.add_parser("demo", help="Try a scripted bug fix with real tests; no provider or account needed")
+    demo.add_argument("--output", type=Path, help="New directory for the sample repository (default: a temporary directory)")
+    setup = sub.add_parser("setup", help="Configure a first run with required checks and call limits; no model calls")
+    setup.add_argument("--provider", choices=["claude", "codex"])
+    setup.add_argument("--model", help="Model identifier available in your provider account")
+    setup.add_argument("--check", action="append", help="Verification command; repeat for multiple checks")
+    setup.add_argument("--max-agent-calls", type=int, help="Run-wide call limit (20 for a new configuration)")
     tui = sub.add_parser("tui", help="Open the live terminal dashboard")
     tui.add_argument("--run-id", help="Select a saved run")
 
@@ -95,6 +106,8 @@ Python fallback: python -m task_harbor
     feedback.add_argument("--task", required=True)
     feedback.add_argument("--outcome", choices=["accepted", "rejected", "needs_changes"], required=True)
     feedback.add_argument("--minutes", type=float, required=True)
+    feedback.add_argument("--supervision-minutes", type=float, help="Active time preparing/guiding this task, excluding review and repair")
+    feedback.add_argument("--repair-minutes", type=float, help="Active time fixing this task, excluding review and supervision")
     feedback.add_argument("--note", default="")
     compare = sub.add_parser("compare", help="Prepare or run an opt-in direct-agent versus Task Harbor comparison")
     compare.add_argument("--manifest", type=Path, required=True)
@@ -205,6 +218,12 @@ def main(argv: list[str] | None = None) -> int:
             from .help import GUIDE
             print(GUIDE)
             return 0
+        if args.command == "demo":
+            from .onboarding import demo
+            return demo(args.output)
+        if args.command == "setup":
+            from .onboarding import setup
+            return setup(repo, args)
         if args.command == "init":
             return cmd_init(repo)
         if getattr(args, "run_id", None) is not None and (not args.run_id or any(c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" for c in args.run_id)):

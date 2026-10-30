@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0
+
+- Add a provider-free demo with a scripted fix, real tests, and a review report.
+- Add guided setup with required verification and a default 20-call run limit.
+- Show changed files, check outcomes, acceptance evidence, and checkpoint-specific human review in reports.
+- Record optional supervision and repair time alongside human review time; add pilot instructions.
+
 ## 0.7.1
 
 - Publish corrected PyPI installation instructions and absolute documentation links.

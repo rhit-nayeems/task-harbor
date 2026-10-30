@@ -37,6 +37,8 @@ jobs:
           cd /tmp
           /tmp/harbor-package-test/bin/task-harbor --version
           /tmp/harbor-package-test/bin/task-harbor guide
+          /tmp/harbor-package-test/bin/task-harbor setup --help
+          /tmp/harbor-package-test/bin/task-harbor demo
           /tmp/harbor-package-test/bin/python -m task_harbor runs --json
           /tmp/harbor-package-test/bin/python -m pytest "$GITHUB_WORKSPACE/tests"
       - uses: actions/upload-artifact@v4

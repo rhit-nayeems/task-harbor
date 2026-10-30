@@ -21,14 +21,23 @@ Upgrade with `python -m pip install --upgrade task-harbor` or `pipx upgrade task
 
 ## Quick start
 
+Try a scripted bug fix first. No provider account or model calls are needed;
+the demo creates a separate sample repository and runs real local tests:
+
+```sh
+task-harbor demo
+```
+
 From a Git repository with at least one commit and a configured Git author:
 
 ```sh
-task-harbor init
+task-harbor setup
 ```
 
-This creates `.manager/config.json` and a sample `BACKLOG.md`, keeping any
-existing backlog. Replace the sample with your tasks:
+The wizard asks for your provider, model, test command, and call limit. It
+requires verification and defaults to 20 calls per run. It creates
+`.manager/config.json` and a sample `BACKLOG.md`, keeping any existing backlog.
+Replace the sample with your tasks:
 
 ```markdown
 ## BUG-001 — Fix empty search results
@@ -41,9 +50,8 @@ existing backlog. Replace the sample with your tasks:
 - **Next action:** Plan the task
 ```
 
-Edit `.manager/config.json` to choose your provider and model, add test commands,
-and set call limits. Claude is the default; for GPT, use `"provider": "codex"`
-and set both dollar-budget fields to `null`.
+You can change these settings in `.manager/config.json`. For GPT, use
+`"provider": "codex"` and set both dollar-budget fields to `null`.
 See [configuration](https://github.com/rhit-nayeems/task-harbor/blob/main/docs/CONFIGURATION.md)
 for the fields and provider setup.
 
@@ -65,7 +73,9 @@ task-harbor manage
 ```
 
 `check` reads local configuration without calling a model. `manage` starts agent
-work and prints a run ID. Call limits default to unlimited unless configured.
+work and prints a run ID. Commit your project changes before starting; use
+`task-harbor preflight --run-checks` to test your configured checks first.
+`init` remains available for manual setup; its call limits default to unlimited.
 
 Open the dashboard with `task-harbor`. It shows saved runs and task progress;
 F1 opens help. Closing the dashboard does not stop a run.
@@ -95,6 +105,7 @@ Agents execute local commands. Git worktrees are not a security sandbox.
 - [Configuration and providers](https://github.com/rhit-nayeems/task-harbor/blob/main/docs/CONFIGURATION.md)
 - [Checks, task agreements, and review](https://github.com/rhit-nayeems/task-harbor/blob/main/docs/VERIFICATION.md)
 - [Compare with a direct agent](https://github.com/rhit-nayeems/task-harbor/blob/main/EVALUATION.md)
+- [Run a pilot](https://github.com/rhit-nayeems/task-harbor/blob/main/docs/PILOT.md)
 - [Architecture](https://github.com/rhit-nayeems/task-harbor/blob/main/ARCHITECTURE.md) · [Technical status](https://github.com/rhit-nayeems/task-harbor/blob/main/TECHNICAL_STATUS.md) · [Changelog](https://github.com/rhit-nayeems/task-harbor/blob/main/CHANGELOG.md)
 
 ## Contributing

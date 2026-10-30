@@ -74,9 +74,16 @@ def run_operator_command(args, repo, cfg):
         else:
             if not math.isfinite(args.minutes) or args.minutes < 0:
                 raise ValueError("Review minutes must be finite and nonnegative")
+            supervision = getattr(args, "supervision_minutes", None)
+            repair = getattr(args, "repair_minutes", None)
+            if any(value is not None and (not math.isfinite(value) or value < 0) for value in (supervision, repair)):
+                raise ValueError("Supervision and repair minutes must be finite and nonnegative")
             path = run_dir / "feedback.json"
             entries = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
             entries.append({"task": args.task, "outcome": args.outcome, "active_review_minutes": args.minutes,
+                            "active_supervision_minutes": supervision, "active_repair_minutes": repair,
+                            "active_engineer_minutes": args.minutes + supervision + repair
+                            if supervision is not None and repair is not None else None,
                             "note": args.note, "checkpoint": task.checkpoint_commit,
                             "time": datetime.now(timezone.utc).isoformat()})
             atomic_write_json(path, entries)

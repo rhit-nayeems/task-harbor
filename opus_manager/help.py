@@ -1,5 +1,10 @@
 GUIDE = """TASK HARBOR — GETTING STARTED
 
+Try task-harbor demo first: a separate sample repository, a scripted fix,
+real tests, and an offline review report. No provider account or model calls.
+For guided configuration in your own repository, run task-harbor setup.
+It requires checks and defaults to a 20-call run limit. Manual setup follows:
+
 1. Open a terminal in your Git repository (with at least one commit).
    task-harbor init
 2. Edit BACKLOG.md: give each task an ID and acceptance criteria.
@@ -41,6 +46,8 @@ Press E in the dashboard to inspect a task, P for suggested checks.
    task-harbor resume --run-id RUN_ID
 Record your review outcome separately from model QA:
    task-harbor feedback --run-id RUN_ID --task TASK_ID --outcome accepted --minutes 5
+Add --supervision-minutes and --repair-minutes to measure total active effort.
+Omitted values are unknown. Avoid counting the same minutes in multiple entries.
 Compare against a direct agent with an operator-written task manifest:
    task-harbor compare --manifest comparison.json --output prepared
 Preparation calls no models. Add --live with a new output folder to run both arms.
