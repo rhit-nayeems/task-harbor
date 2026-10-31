@@ -29,9 +29,15 @@ def new_task(task_id, title, criteria) -> BacklogTask:
     return BacklogTask(task_id, title.strip(), acceptance_criteria=[c.strip() for c in criteria], next_action="Plan the task")
 
 
+def existing_tasks(path: Path):
+    if not path.exists() or not any(line.startswith("##") for line in path.read_text(encoding="utf-8").splitlines()):
+        return {}
+    return parse_backlog(path)
+
+
 def append_task(path: Path, task: BacklogTask) -> None:
     existing = path.read_text(encoding="utf-8") if path.exists() else "# Backlog\n"
-    if path.exists() and task.task_id in parse_backlog(path):
+    if task.task_id in existing_tasks(path):
         raise ValueError(f"Task already exists: {task.task_id}")
     with tempfile.TemporaryDirectory() as directory:
         rendered = Path(directory) / "task.md"
@@ -42,7 +48,11 @@ def append_task(path: Path, task: BacklogTask) -> None:
 
 
 def next_task_id(path: Path) -> str:
-    tasks = parse_backlog(path) if path.exists() else {}
+    try:
+        tasks = existing_tasks(path)
+    except ValueError:
+        # Keep the setup form usable; saving still validates the existing file.
+        tasks = {}
     number = 1
     while f"TASK-{number:03}" in tasks:
         number += 1
@@ -112,9 +122,9 @@ def setup(repo: Path, args) -> int:
     configured = Config(**values)  # Validate everything before writing anything.
     backlog = repo / configured.backlog_file
     task = None
-    if getattr(args, "title", None) or getattr(args, "task_id", None) or getattr(args, "accept", None) or (interactive and not backlog.exists()):
+    if getattr(args, "title", None) or getattr(args, "task_id", None) or getattr(args, "accept", None) or (interactive and not existing_tasks(backlog)):
         task = collect_task(args, interactive, next_task_id(backlog))
-        if backlog.exists() and task.task_id in parse_backlog(backlog):
+        if task.task_id in existing_tasks(backlog):
             raise ValueError(f"Task already exists: {task.task_id}")
     ensure_local_exclude(repo, ".manager")
     if configured.manager_dir != ".manager":

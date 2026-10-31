@@ -92,3 +92,17 @@ def test_add_task_keeps_existing_text_and_refuses_duplicate(tmp_path, monkeypatc
     assert path.read_text(encoding="utf-8") == before
     assert main(["--repo", str(repo), "add-task", "--task-id", "BUG-002", "--title", "Keep normal behavior", "--accept", "Normal input still works"]) == 0
     assert path.read_text(encoding="utf-8").startswith(before.rstrip())
+
+
+def test_add_task_to_empty_backlog_and_malformed_backlog_is_preserved(tmp_path, monkeypatch):
+    repo = tmp_path / "project"
+    init_repo(repo)
+    path = repo / "BACKLOG.md"
+    path.write_text("# Backlog\n\n<!-- Project notes -->\n", encoding="utf-8")
+    monkeypatch.setattr("sys.stdin", SimpleNamespace(isatty=lambda: False))
+    args = ["--repo", str(repo), "add-task", "--task-id", "BUG-1", "--title", "Handle empty input", "--accept", "Empty input works"]
+    assert main(args) == 0
+    assert "<!-- Project notes -->" in path.read_text(encoding="utf-8")
+    path.write_text("## invalid task heading\n", encoding="utf-8")
+    assert main(args) == 2
+    assert path.read_text(encoding="utf-8") == "## invalid task heading\n"

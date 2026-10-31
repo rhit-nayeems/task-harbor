@@ -82,10 +82,10 @@ class ProjectSetup(ModalScreen):
             import contextlib
             import io
             from types import SimpleNamespace
-            from .onboarding import setup
+            from .onboarding import existing_tasks, setup
             try:
                 title = self.query_one("#setup-task-title", Input).value.strip()
-                if not title and not (self.repo / self.cfg.backlog_file).exists():
+                if not title and not existing_tasks(self.repo / self.cfg.backlog_file):
                     raise ValueError("Add your first task title and acceptance criteria.")
                 checks = [c.strip() for c in self.query_one("#setup-checks", TextArea).text.splitlines() if c.strip()]
                 if not checks:
