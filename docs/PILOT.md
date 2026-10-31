@@ -60,7 +60,9 @@ task-harbor feedback --run-id RUN_ID --task TASK_ID --outcome accepted --minutes
 `--minutes` is review time. Omitted supervision or repair values mean unknown,
 not zero. Supply explicit zero when no time was spent. Feedback entries append;
 do not log the same time twice. Task completion and model PASS are not human
-acceptance. Keep equivalent records for direct-agent attempts.
+acceptance. For comparison-runner trials in either arm, use
+`compare-feedback` and `compare-report` as described in [Evaluation](../EVALUATION.md#record-human-outcomes-and-compare-effort).
+Keep equivalent records for tasks performed outside the runner.
 
 Measure human minutes per accepted task, including time spent on unsuccessful
 attempts. Report acceptance and regressions alongside this number so rejecting

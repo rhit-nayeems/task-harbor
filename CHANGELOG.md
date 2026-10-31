@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.0
+
+- Collect a first task and acceptance criteria during interactive setup; add tasks with `add-task` without editing Markdown.
+- Replace dashboard initialization with a setup form for provider, model, checks, limits, and tasks.
+- Add `compare-feedback` and `compare-report` for human outcomes and effort across direct-agent and Harbor trials.
+- Include unsuccessful effort in comparison metrics; withhold minutes per accepted task when feedback is incomplete.
+- Update website and README onboarding and focus the public description on Python maintenance backlogs.
+
 ## 0.8.0
 
 - Add a provider-free demo with a scripted fix, real tests, and a review report.

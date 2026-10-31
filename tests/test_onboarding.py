@@ -65,10 +65,30 @@ def test_summary_does_not_treat_missing_checks_or_old_feedback_as_verified():
 def test_interactive_setup_records_choices_without_executing_checks(tmp_path, monkeypatch):
     repo = tmp_path / "project"
     init_repo(repo)
+    (repo / "BACKLOG.md").unlink()
     monkeypatch.setattr("sys.stdin", SimpleNamespace(isatty=lambda: True))
-    answers = iter(["claude", "opus", "command-that-must-not-be-executed", "8"])
+    answers = iter(["claude", "opus", "command-that-must-not-be-executed", "8", "BUG-001", "Handle empty input", "Empty input returns an empty list", ""])
     monkeypatch.setattr("builtins.input", lambda prompt: next(answers))
     assert main(["--repo", str(repo), "setup"]) == 0
     cfg = json.loads((repo / ".manager/config.json").read_text())
     assert cfg["max_agent_calls"] == 8
     assert cfg["verification_commands"] == ["command-that-must-not-be-executed"]
+    from opus_manager.backlog import parse_backlog
+    tasks = parse_backlog(repo / "BACKLOG.md")
+    assert tasks["BUG-001"].acceptance_criteria == ["Empty input returns an empty list"]
+
+
+def test_add_task_keeps_existing_text_and_refuses_duplicate(tmp_path, monkeypatch):
+    repo = tmp_path / "project"
+    init_repo(repo)
+    monkeypatch.setattr("sys.stdin", SimpleNamespace(isatty=lambda: False))
+    prefix = ["--repo", str(repo), "add-task", "--task-id", "BUG-001", "--title", "Handle empty input",
+              "--accept", "Empty input returns an empty list"]
+    assert main(prefix) == 0
+    path = repo / "BACKLOG.md"
+    path.write_text(path.read_text(encoding="utf-8") + "\n<!-- Keep this note -->\n", encoding="utf-8")
+    before = path.read_text(encoding="utf-8")
+    assert main(prefix) == 2
+    assert path.read_text(encoding="utf-8") == before
+    assert main(["--repo", str(repo), "add-task", "--task-id", "BUG-002", "--title", "Keep normal behavior", "--accept", "Normal input still works"]) == 0
+    assert path.read_text(encoding="utf-8").startswith(before.rstrip())

@@ -4,7 +4,7 @@ import json
 import pytest
 
 pytest.importorskip("textual")
-from textual.widgets import DataTable, Static, Select
+from textual.widgets import DataTable, Static, Select, Input, TextArea
 
 from opus_manager.models import BacklogTask, ManagerState, TaskStatus
 from opus_manager.state import save_state
@@ -98,7 +98,18 @@ def test_setup_validate_and_cancel_launch(tmp_path):
         async with app.run_test(size=(120, 44)) as pilot:
             await pilot.click("#setup")
             await pilot.pause()
-            assert (tmp_path / ".manager/config.json").exists()
+            assert not (tmp_path / ".manager/config.json").exists()
+            app.screen.query_one("#setup-task-id", Input).value = "BUG-001"
+            app.screen.query_one("#setup-task-title", Input).value = "Handle empty search"
+            app.screen.query_one("#setup-checks", TextArea).load_text("python -m unittest")
+            app.screen.query_one("#setup-criteria", TextArea).load_text("Empty search returns no results")
+            await pilot.pause()
+            await pilot.click("#setup-save")
+            await pilot.pause()
+            assert (tmp_path / ".manager/config.json").exists(), str(app.screen.query_one("#setup-error", Static).render())
+            cfg = json.loads((tmp_path / ".manager/config.json").read_text())
+            assert cfg["require_verification"] and cfg["max_agent_calls"] == 20
+            assert "Empty search returns no results" in (tmp_path / "BACKLOG.md").read_text()
             await pilot.click("#validate")
             await pilot.pause()
             assert "Valid backlog" in str(app.query_one("#action-result", Static).render())
@@ -108,6 +119,25 @@ def test_setup_validate_and_cancel_launch(tmp_path):
             await pilot.press("escape")
             assert app.launched_process is None
             assert not (tmp_path / ".manager/launch-logs").exists()
+    asyncio.run(check())
+
+
+def test_setup_cancel_and_invalid_input_do_not_write(tmp_path):
+    from test_orchestrator_integration import init_repo
+    repo = tmp_path / "repo"
+    init_repo(repo)
+
+    async def check():
+        app = HarborApp(repo)
+        async with app.run_test(size=(80, 30)) as pilot:
+            await pilot.click("#setup")
+            await pilot.pause()
+            await pilot.click("#setup-save")
+            await pilot.pause()
+            assert "verification command" in str(app.screen.query_one("#setup-error", Static).render())
+            assert not (repo / ".manager/config.json").exists()
+            await pilot.press("escape")
+            assert not (repo / ".manager/config.json").exists()
     asyncio.run(check())
 
 

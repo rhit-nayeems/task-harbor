@@ -1,6 +1,6 @@
 # Task Harbor
 
-Run a Markdown backlog with Claude Code or Codex. Task Harbor plans tasks,
+Work through your team's Python maintenance backlog with Claude Code or Codex. Task Harbor plans tasks,
 implements them in Git worktrees, runs your checks, and collects the results
 on a local branch for review. It does not push changes.
 
@@ -34,10 +34,18 @@ From a Git repository with at least one commit and a configured Git author:
 task-harbor setup
 ```
 
-The wizard asks for your provider, model, test command, and call limit. It
-requires verification and defaults to 20 calls per run. It creates
-`.manager/config.json` and a sample `BACKLOG.md`, keeping any existing backlog.
-Replace the sample with your tasks:
+The wizard asks for your provider, model, test command, and call limit. For a new
+backlog, it also collects your first task and acceptance criteria. It requires
+verification and defaults to 20 calls per run. Existing tasks are preserved.
+The dashboard's **Set up** form supports the same flow.
+
+Add another task interactively, without editing Markdown:
+
+```sh
+task-harbor add-task
+```
+
+Or edit `BACKLOG.md` directly:
 
 ```markdown
 ## BUG-001 — Fix empty search results

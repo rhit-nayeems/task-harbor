@@ -43,7 +43,7 @@ Dashboard keys: F1 help, Tab next pane, arrows select, r refresh, q quit.
 Python fallback: python -m task_harbor
 """,
     )
-    p.add_argument("--version", action="version", version="%(prog)s 0.8.0")
+    p.add_argument("--version", action="version", version="%(prog)s 0.9.0")
     p.add_argument("--repo", type=_repo, default=Path.cwd(), help="Target Git repository (default: current directory)")
     sub = p.add_subparsers(dest="command")
     p.set_defaults(command="tui", run_id=None)
@@ -55,6 +55,10 @@ Python fallback: python -m task_harbor
     setup.add_argument("--model", help="Model identifier available in your provider account")
     setup.add_argument("--check", action="append", help="Verification command; repeat for multiple checks")
     setup.add_argument("--max-agent-calls", type=int, help="Run-wide call limit (20 for a new configuration)")
+    for command in (setup, sub.add_parser("add-task", help="Create a task with observable acceptance criteria; no model calls")):
+        command.add_argument("--task-id", help="Unique task ID, such as BUG-001")
+        command.add_argument("--title", help="One small change to implement")
+        command.add_argument("--accept", action="append", help="Observable acceptance criterion; repeat for multiple criteria")
     tui = sub.add_parser("tui", help="Open the live terminal dashboard")
     tui.add_argument("--run-id", help="Select a saved run")
 
@@ -114,6 +118,19 @@ Python fallback: python -m task_harbor
     compare.add_argument("--output", type=Path, required=True)
     compare.add_argument("--live", action="store_true", help="Consumes model usage in both arms")
     compare.add_argument("--repetitions", type=int, default=1)
+    outcome = sub.add_parser("compare-feedback", help="Record human outcome and effort for one comparison trial; no model calls")
+    outcome.add_argument("--experiment", type=Path, required=True)
+    outcome.add_argument("--trial", required=True, help="Trial directory name, e.g. SEARCH-1-0-direct")
+    outcome.add_argument("--outcome", choices=["accepted", "needs_changes", "rejected", "abandoned"], required=True)
+    outcome.add_argument("--minutes", type=float, required=True, help="Active review minutes")
+    outcome.add_argument("--supervision-minutes", type=float, required=True)
+    outcome.add_argument("--repair-minutes", type=float, required=True)
+    outcome.add_argument("--regressions", type=int, required=True, help="Regressions observed during human review")
+    outcome.add_argument("--note", default="")
+    summary = sub.add_parser("compare-report", help="Summarize human acceptance, total effort, quality, and usage across both arms")
+    summary.add_argument("--experiment", type=Path, required=True)
+    summary.add_argument("--json", action="store_true")
+    summary.add_argument("--html", type=Path, help="Write a standalone HTML report")
     return p
 
 
@@ -224,6 +241,12 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "setup":
             from .onboarding import setup
             return setup(repo, args)
+        if args.command == "add-task":
+            from .onboarding import add_task
+            return add_task(repo, args)
+        if args.command in {"compare-feedback", "compare-report"}:
+            from .pilot_reporting import run_command
+            return run_command(args)
         if args.command == "init":
             return cmd_init(repo)
         if getattr(args, "run_id", None) is not None and (not args.run_id or any(c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" for c in args.run_id)):

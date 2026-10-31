@@ -7,7 +7,7 @@ import tempfile
 from dataclasses import asdict
 from pathlib import Path
 
-from .backlog import render_backlog, write_template
+from .backlog import parse_backlog, render_backlog, write_template
 from .config import Config
 from .evidence import change_evidence
 from .gitops import ensure_local_exclude, ensure_repo, git, head
@@ -17,6 +17,59 @@ from .preflight import suggestions
 from .reporting import review_summary, run_report, write_html
 from .state import atomic_write_json, save_state
 from .verification import run_checks
+
+
+def new_task(task_id, title, criteria) -> BacklogTask:
+    if not isinstance(task_id, str) or not task_id or any(c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" for c in task_id):
+        raise ValueError("Use a nonempty task ID containing letters, digits, hyphens, or underscores.")
+    if not isinstance(title, str) or not title.strip() or "\n" in title or "\r" in title:
+        raise ValueError("Provide a one-line task title.")
+    if not criteria or any(not isinstance(c, str) or not c.strip() or "\n" in c or "\r" in c for c in criteria):
+        raise ValueError("Provide at least one observable, one-line acceptance criterion.")
+    return BacklogTask(task_id, title.strip(), acceptance_criteria=[c.strip() for c in criteria], next_action="Plan the task")
+
+
+def append_task(path: Path, task: BacklogTask) -> None:
+    existing = path.read_text(encoding="utf-8") if path.exists() else "# Backlog\n"
+    if path.exists() and task.task_id in parse_backlog(path):
+        raise ValueError(f"Task already exists: {task.task_id}")
+    with tempfile.TemporaryDirectory() as directory:
+        rendered = Path(directory) / "task.md"
+        render_backlog(rendered, {task.task_id: task})
+        block = "## " + rendered.read_text(encoding="utf-8").split("## ", 1)[1]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(existing.rstrip() + "\n\n" + block, encoding="utf-8")
+
+
+def next_task_id(path: Path) -> str:
+    tasks = parse_backlog(path) if path.exists() else {}
+    number = 1
+    while f"TASK-{number:03}" in tasks:
+        number += 1
+    return f"TASK-{number:03}"
+
+
+def collect_task(args, interactive: bool, default_id="TASK-001") -> BacklogTask:
+    task_id, title, criteria = args.task_id, args.title, args.accept
+    if interactive:
+        task_id = task_id or input(f"Task ID [{default_id}]: ").strip() or default_id
+        title = title or input("What small change should the agent make? ").strip()
+        if not criteria:
+            print("Acceptance criteria: one observable result per line; blank line finishes.")
+            criteria = []
+            while value := input(f"Criterion {len(criteria) + 1}: ").strip():
+                criteria.append(value)
+    return new_task(task_id, title, criteria)
+
+
+def add_task(repo: Path, args) -> int:
+    ensure_repo(repo)
+    path = repo / read_config(repo).backlog_file
+    task = collect_task(args, sys.stdin.isatty(), next_task_id(path))
+    append_task(path, task)
+    print(f"Added {task.task_id} to {path}. Existing runs keep their saved requirements.")
+    print("Next: task-harbor check. Commit project changes and run preflight --run-checks before manage.")
+    return 0
 
 
 def setup(repo: Path, args) -> int:
@@ -57,17 +110,24 @@ def setup(repo: Path, args) -> int:
     if provider != cfg.provider:
         values.update(effort="medium", max_run_cost_usd=None, max_call_cost_usd=None)
     configured = Config(**values)  # Validate everything before writing anything.
+    backlog = repo / configured.backlog_file
+    task = None
+    if getattr(args, "title", None) or getattr(args, "task_id", None) or getattr(args, "accept", None) or (interactive and not backlog.exists()):
+        task = collect_task(args, interactive, next_task_id(backlog))
+        if backlog.exists() and task.task_id in parse_backlog(backlog):
+            raise ValueError(f"Task already exists: {task.task_id}")
     ensure_local_exclude(repo, ".manager")
     if configured.manager_dir != ".manager":
         ensure_local_exclude(repo, configured.manager_dir)
-    backlog = repo / configured.backlog_file
-    if not backlog.exists():
+    if task:
+        append_task(backlog, task)
+    elif not backlog.exists():
         backlog.parent.mkdir(parents=True, exist_ok=True)
         write_template(backlog)
     atomic_write_json(path, {**existing, **asdict(configured)})
     print(f"Saved {path}. Required checks: {len(commands)}. Run call limit: {limit}.")
     print("Harbor's local files are excluded through Git's local info/exclude; .gitignore was not changed.")
-    print(f"1. Replace the sample task in {configured.backlog_file} with one small, observable change.")
+    print(f"1. Review {task.task_id} in {configured.backlog_file}." if task else "1. Run task-harbor add-task to enter a task and acceptance criteria.")
     print("2. Run task-harbor check and resolve errors. Authentication is not tested.")
     print("3. Commit your project changes, then run task-harbor preflight --run-checks.")
     print("4. Run task-harbor manage when ready to use your provider account.")

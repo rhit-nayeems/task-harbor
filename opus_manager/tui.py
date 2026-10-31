@@ -10,14 +10,97 @@ from pathlib import Path
 from rich.text import Text
 from textual.app import App, ComposeResult
 from textual.screen import ModalScreen
-from textual.containers import Horizontal, VerticalScroll
-from textual.widgets import Button, DataTable, Footer, Select, Static, ProgressBar
+from textual.containers import Horizontal, VerticalScroll, Vertical
+from textual.widgets import Button, DataTable, Footer, Select, Static, ProgressBar, Input, TextArea
 
 from .config import Config
 from .reporting import run_report
 from .help import GUIDE
 from .desktop_actions import launch_run
 from .reporting import review_text
+
+
+class ProjectSetup(ModalScreen):
+    BINDINGS = [("escape", "cancel", "Cancel")]
+    DEFAULT_CSS = """
+    ProjectSetup { align: center middle; background: #000000 70%; }
+    #setup-panel { width: 88%; height: 92%; border: round #66e3c4; padding: 1 2; background: #111e2c; }
+    #setup-panel Static { height: auto; margin-top: 1; }
+    #setup-panel Input, #setup-panel Select { margin-bottom: 1; }
+    #setup-panel TextArea { height: 5; }
+    #setup-fields { height: 1fr; }
+    #setup-buttons { height: 3; margin-top: 1; }
+    #setup-error { color: #ff9c9c; }
+    """
+
+    def __init__(self, repo):
+        super().__init__()
+        self.repo = repo
+        from .offline import read_config
+        self.cfg = read_config(repo)
+
+    def compose(self):
+        with Vertical(id="setup-panel"):
+            with VerticalScroll(id="setup-fields"):
+                yield from self.fields()
+            yield Static("", id="setup-error", markup=False)
+            with Horizontal(id="setup-buttons"):
+                yield Button("Save setup", id="setup-save", variant="success")
+                yield Button("Cancel", id="setup-cancel")
+
+    def fields(self):
+        yield Static("Set up your project. No model calls or checks run here.")
+        yield Static("Provider")
+        yield Select([("Claude Code", "claude"), ("Codex", "codex")], value=self.cfg.provider, allow_blank=False, id="setup-provider")
+        yield Static("Model available in your account")
+        yield Input(self.cfg.model, id="setup-model")
+        yield Static("Verification commands (one per line; required)")
+        yield TextArea("\n".join(self.cfg.verification_commands), id="setup-checks")
+        yield Static("Maximum calls per run (not a token or dollar limit)")
+        yield Input(str(self.cfg.max_agent_calls or 20), id="setup-limit")
+        yield Static("Add a task. Required for a new backlog; leave title blank to keep an existing backlog.")
+        from .onboarding import next_task_id
+        yield Input(next_task_id(self.repo / self.cfg.backlog_file), placeholder="Unique task ID", id="setup-task-id")
+        yield Input(placeholder="One small change to implement", id="setup-task-title")
+        yield Static("Acceptance criteria (one observable result per line)")
+        yield TextArea(id="setup-criteria")
+
+    def action_cancel(self):
+        self.dismiss(None)
+
+    def on_select_changed(self, event):
+        event.stop()
+        model = self.query_one("#setup-model", Input)
+        if str(event.value) != self.cfg.provider and model.value == self.cfg.model:
+            model.value = ""
+
+    def on_button_pressed(self, event):
+        event.stop()
+        if event.button.id == "setup-cancel":
+            self.action_cancel()
+        elif event.button.id == "setup-save":
+            import contextlib
+            import io
+            from types import SimpleNamespace
+            from .onboarding import setup
+            try:
+                title = self.query_one("#setup-task-title", Input).value.strip()
+                if not title and not (self.repo / self.cfg.backlog_file).exists():
+                    raise ValueError("Add your first task title and acceptance criteria.")
+                checks = [c.strip() for c in self.query_one("#setup-checks", TextArea).text.splitlines() if c.strip()]
+                if not checks:
+                    raise ValueError("Add at least one verification command.")
+                args = SimpleNamespace(provider=str(self.query_one("#setup-provider", Select).value),
+                    model=self.query_one("#setup-model", Input).value.strip(), check=checks,
+                    max_agent_calls=int(self.query_one("#setup-limit", Input).value),
+                    task_id=self.query_one("#setup-task-id", Input).value.strip() if title else None,
+                    title=title or None, accept=self.query_one("#setup-criteria", TextArea).text.splitlines() if title else None)
+                output = io.StringIO()
+                with contextlib.redirect_stdout(output):
+                    setup(self.repo, args)
+                self.dismiss(output.getvalue())
+            except (OSError, ValueError, RuntimeError) as exc:
+                self.query_one("#setup-error", Static).update(str(exc))
 
 
 class ConfirmRun(ModalScreen):
@@ -152,7 +235,7 @@ class HarborApp(App):
             yield Button("Stop", id="stop", variant="warning")
             yield Button("Review", id="review")
         yield Static("", id="action-result", markup=False)
-        yield Static("No runs yet.\n\n1  task-harbor init\n2  Edit BACKLOG.md and .manager/config.json\n3  task-harbor validate\n4  task-harbor manage (in another terminal)\n\nPress F1 for setup help. This dashboard will show the run when it starts.", id="welcome", markup=False)
+        yield Static("No runs yet.\nClick Set up to configure checks and your first task.\nPress F1 for help or try task-harbor demo in a terminal.", id="welcome", markup=False)
         yield Select([], prompt="Choose a run", id="run-picker")
         with Horizontal(id="summary"):
             for name in ("progress", "provider", "calls", "cost"):
@@ -178,6 +261,12 @@ class HarborApp(App):
 
     def action_help(self) -> None:
         self.push_screen(HelpScreen())
+
+    def setup_finished(self, message):
+        if message:
+            self.runs = runs_directory(self.repo)
+            self.action_message(message)
+            self.action_reload()
 
     def action_evidence(self) -> None:
         if self.report and self.report["tasks"]:
@@ -210,6 +299,12 @@ class HarborApp(App):
         event.stop()
         if self.action_busy:
             return
+        if action == "setup":
+            try:
+                self.push_screen(ProjectSetup(self.repo), self.setup_finished)
+            except (OSError, ValueError, TypeError) as exc:
+                self.action_message(str(exc))
+            return
         if action in {"start", "resume"}:
             if self.launched_process and self.launched_process.poll() is None:
                 self.action_message("A run launched here is still running. Stop it or wait before launching another.")
@@ -217,7 +312,7 @@ class HarborApp(App):
             try:
                 path = self.repo / ".manager" / "config.json"
                 if not path.exists():
-                    raise ValueError("Use Set up first, then edit the backlog and configuration.")
+                    raise ValueError("Use Set up first to configure your checks and tasks.")
                 raw = json.loads(path.read_text(encoding="utf-8"))
                 cfg = Config(**{k: v for k, v in raw.items() if k in Config.__dataclass_fields__})
                 self.resume_target = self.selected_run if action == "resume" else None
@@ -234,7 +329,7 @@ class HarborApp(App):
             except (OSError, ValueError, TypeError) as exc:
                 self.action_message(str(exc))
             return
-        command = "init" if action == "setup" else action
+        command = action
         args = [sys.executable, "-m", "task_harbor", "--repo", str(self.repo), command]
         if action == "stop":
             if not self.selected_run:
@@ -311,15 +406,15 @@ class HarborApp(App):
                 config_exists = (self.repo / ".manager" / "config.json").exists()
                 self.query_one("#welcome", Static).update(
                     "No runs yet. A run is one execution of your backlog.\n\n"
-                    + ("1  Click Set up to create configuration and a sample backlog.\n" if not config_exists else "1  Project configured. Review your backlog and configuration.\n")
-                    + "2  Edit BACKLOG.md and .manager/config.json in your editor.\n"
+                    + ("1  Click Set up to choose a provider, checks, limits, and your first task.\n" if not config_exists else "1  Use Set up to review configuration or add another task.\n")
+                    + "2  Commit project changes; run task-harbor preflight --run-checks.\n"
                     "3  Click Validate to check task requirements.\n4  Click New run to review settings and start.\n\n"
                     f"Looking for runs in: {self.runs}\nPress F1 for help."
                 )
                 self.query_one("#welcome").display = True
                 for selector in ("#body", "#events", "#summary", "#completion"):
                     self.query_one(selector).display = False
-                self.clear_run("No runs yet.\nStart with: task-harbor --repo <path> init\nEdit BACKLOG.md, then run manage in another terminal.")
+                self.clear_run("No runs yet.\nClick Set up, or use task-harbor setup.\nTry task-harbor demo in a terminal without using a provider.")
                 return
             self.query_one("#welcome").display = False
             for selector in ("#body", "#events", "#summary", "#completion"):

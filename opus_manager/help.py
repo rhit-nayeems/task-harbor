@@ -3,32 +3,34 @@ GUIDE = """TASK HARBOR — GETTING STARTED
 Try task-harbor demo first: a separate sample repository, a scripted fix,
 real tests, and an offline review report. No provider account or model calls.
 For guided configuration in your own repository, run task-harbor setup.
-It requires checks and defaults to a 20-call run limit. Manual setup follows:
+It requires checks and defaults to a 20-call run limit.
+For a new backlog, setup asks for your first task and acceptance criteria.
+Use task-harbor add-task to add another task. Dashboard Set up has the same fields.
 
 1. Open a terminal in your Git repository (with at least one commit).
-   task-harbor init
-2. Edit BACKLOG.md: give each task an ID and acceptance criteria.
-3. Edit .manager/config.json. Choose provider claude or codex and a model
-   available to your account. Sign in with that provider's CLI first.
-   For Codex, use a gpt-* model and leave both dollar caps null.
-4. Set verification_commands to your test/build commands. Set max_agent_calls
-   to limit usage; by default calls are unlimited.
-5. Check and run:
+   task-harbor setup
+2. Enter your provider, model, checks, call limit, and first task when prompted.
+   Sign in with the provider's CLI before running real work.
+3. Commit project changes, then check and run:
    task-harbor check        (read-only readiness; no model calls or project commands)
    task-harbor preflight    (suggests checks; no model calls)
    task-harbor preflight --run-checks
    task-harbor validate
    task-harbor doctor       (makes a model call)
    task-harbor manage       (starts paid/subscription agent work)
-6. Open another terminal in the same repository:
+4. Open another terminal in the same repository:
    task-harbor
+
+For manual configuration, init creates a template. Edit BACKLOG.md and
+.manager/config.json yourself. init has no call limit until you configure one.
+For Codex, use a gpt-* model and leave both dollar caps null.
 
 MONITOR AND CONTROL
 List saved runs with task-harbor runs (or runs --status paused).
 Use check --json and runs --json for machine-readable results.
 Saved run status is a snapshot, not proof that a process is running.
 The dashboard refreshes every two seconds. Viewing does not call models.
-Set up creates config/backlog; Validate checks them without model calls.
+Set up collects configuration and tasks; Validate checks them without model calls.
 New run and Resume show settings before you confirm agent work.
 Stop pauses after in-flight calls. Launch output: .manager/launch-logs/.
 Tab / Shift+Tab: change pane. Arrows: select task or run. F1: help. q: exit.
@@ -51,6 +53,9 @@ Omitted values are unknown. Avoid counting the same minutes in multiple entries.
 Compare against a direct agent with an operator-written task manifest:
    task-harbor compare --manifest comparison.json --output prepared
 Preparation calls no models. Add --live with a new output folder to run both arms.
+Record a comparison trial's human outcome with compare-feedback, then use
+compare-report --experiment PATH (or --html comparison.html) to inspect both arms.
+These commands call no providers. See EVALUATION.md for the full command examples.
 
 TROUBLESHOOTING
 Command not found? Use python -m task_harbor with the same arguments.

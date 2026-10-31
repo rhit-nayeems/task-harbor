@@ -93,6 +93,39 @@ report the recorded cost and effort alongside completion. A Harbor run that paus
 is still graded on its integrated result, with the stop reason retained. Provider
 costs can be unavailable and must not be treated as free.
 
+## Record human outcomes and compare effort
+
+After reviewing a trial's checkout and independent checks, record the outcome:
+
+```sh
+task-harbor compare-feedback --experiment experiment --trial SEARCH-1-0-direct --outcome accepted --minutes 4 --supervision-minutes 3 --repair-minutes 0 --regressions 0
+task-harbor compare-report --experiment experiment
+task-harbor compare-report --experiment experiment --html comparison.html
+task-harbor compare-report --experiment experiment --json
+```
+
+Trial IDs are the directory names produced by the comparison runner. Outcomes
+include `accepted`, `needs_changes`, `rejected`, and `abandoned`. Time fields
+must be explicit: zero means measured zero, not unknown. Include all active
+preparation/guidance, review, and repair effort without overlapping categories.
+Use `--note` to retain review context. No provider or grader runs in these commands.
+
+Feedback is saved separately from machine results. A new assessment replaces
+the previous totals for that trial in the summary; enter cumulative effort,
+not just time since the previous assessment. Earlier records remain available.
+Feedback is bound to the result record's digest, not an independent proof of
+the checkout's contents. Review before changing a checkout; if it changes,
+reassess it rather than treating earlier acceptance as current. Feedback for
+changed result records is ignored and counted as stale.
+
+The report separates human acceptance from independent check outcomes. It
+includes failed and abandoned attempts in effort and keeps scheduled attempts
+that lack results visible. Minutes per accepted task is withheld until every
+scheduled attempt in that arm has human feedback. If no tasks were accepted,
+the value is undefined. Measured subset totals remain labeled as such. Missing
+usage stays visible through missing-trial and missing-cost counts. The report
+does not infer statistical significance, retention, or commercial value.
+
 No live comparison results are included in this release. The automated tests use
 fake providers and real temporary Git repositories to check the experiment
 machinery. To establish product value, use representative tasks, repeated trials,
