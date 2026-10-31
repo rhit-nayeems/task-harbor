@@ -186,7 +186,7 @@ export function HarborPage({ children }: { children: ReactNode }) {
     
     <p className="hero-brand display" aria-label="Task Harbor"><span>TASK</span><span>HARBOR</span></p>
     <h1 id="hero-title">A small engineering team.<br/><span>In your terminal.</span></h1>
-    <p className="hero-description">AI agents plan, implement, verify, and review your coding backlog. You set the tasks and checks. You decide what gets merged.</p>
+    <p className="hero-description">Work through your team’s Python maintenance backlog with Claude Code or Codex. Agents plan, implement, check, and review each task. You decide what gets merged.</p>
     <div className="hero-actions"><a href="#install" className="primary-link">Set up your team ↗</a><a href="#workflow" className="secondary-link">Explore a run ↓</a></div>
     <p className="hero-requirements">Uses your authenticated Claude Code or Codex account.</p>
    </div>
